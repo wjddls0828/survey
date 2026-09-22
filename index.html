@@ -2,536 +2,551 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>서비스 이용 만족도 설문</title>
-<meta name="description" content="더 나은 서비스를 만들기 위한 1분 설문입니다.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>잠깐 얘기 좀 할까?</title>
+<meta name="description" content="채팅하듯 편하게 답하는 1분 설문입니다.">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
-:root {
-  --bg:        #f6f6f9;
-  --bg-tint-a: rgba(99,102,241,.10);
-  --bg-tint-b: rgba(236,72,153,.07);
-  --card:      rgba(255,255,255,.72);
-  --card-solid:#ffffff;
-  --line:      rgba(17,17,26,.09);
-  --line-soft: rgba(17,17,26,.06);
-  --text:      #16161d;
-  --text-2:    #55555f;
-  --muted:     #8b8b96;
-  --accent:    #6366f1;
-  --accent-2:  #a855f7;
-  --accent-sh: rgba(99,102,241,.28);
-  --danger:    #e11d48;
-  --shadow:    0 1px 2px rgba(17,17,26,.04), 0 8px 24px rgba(17,17,26,.06);
-  --shadow-lg: 0 2px 4px rgba(17,17,26,.05), 0 16px 48px rgba(17,17,26,.10);
+:root{
+  --bg:#eceef3; --shell:#f7f8fb; --head:rgba(247,248,251,.86);
+  --bub:#ffffff; --bub-line:rgba(17,17,26,.07);
+  --text:#16161d; --text-2:#54545f; --muted:#8e8e99;
+  --line:rgba(17,17,26,.09); --field:#ffffff;
+  --accent:#6366f1; --accent-2:#8b5cf6; --on-accent:#fff;
+  --accent-soft:rgba(99,102,241,.12);
+  --shadow:0 1px 2px rgba(17,17,26,.05),0 10px 30px rgba(17,17,26,.07);
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg:        #0a0a0f;
-    --bg-tint-a: rgba(99,102,241,.16);
-    --bg-tint-b: rgba(236,72,153,.10);
-    --card:      rgba(26,26,34,.68);
-    --card-solid:#1a1a22;
-    --line:      rgba(255,255,255,.10);
-    --line-soft: rgba(255,255,255,.06);
-    --text:      #ededf2;
-    --text-2:    #a8a8b5;
-    --muted:     #70707e;
-    --accent:    #818cf8;
-    --accent-2:  #c084fc;
-    --accent-sh: rgba(129,140,248,.30);
-    --danger:    #fb7185;
-    --shadow:    0 1px 2px rgba(0,0,0,.30), 0 8px 24px rgba(0,0,0,.35);
-    --shadow-lg: 0 2px 4px rgba(0,0,0,.35), 0 16px 48px rgba(0,0,0,.45);
+body[data-persona="f"]{ --accent:#f04c74; --accent-2:#f97362; --accent-soft:rgba(240,76,116,.12); }
+body[data-persona="m"]{ --accent:#3d7bf5; --accent-2:#3fb8e0; --accent-soft:rgba(61,123,245,.12); }
+
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#08080c; --shell:#111117; --head:rgba(17,17,23,.86);
+    --bub:#22222c; --bub-line:rgba(255,255,255,.07);
+    --text:#eeeef3; --text-2:#a9a9b6; --muted:#6f6f7d;
+    --line:rgba(255,255,255,.09); --field:#1b1b23;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45);
   }
+  body[data-persona="f"]{ --accent:#f2607f; --accent-2:#fb8a72; --accent-soft:rgba(242,96,127,.16); }
+  body[data-persona="m"]{ --accent:#5b90f7; --accent-2:#54c5e8; --accent-soft:rgba(91,144,247,.16); }
 }
 
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,
+              "Apple SD Gothic Neo",system-ui,sans-serif;
+  font-size:15px; line-height:1.55; letter-spacing:-.012em;
+  -webkit-font-smoothing:antialiased;
+  display:flex; align-items:center; justify-content:center;
+}
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  padding: 0 20px 96px;
-  background: var(--bg);
+/* ── 앱 셸 ─────────────────────────────── */
+.app{
+  width:100%; max-width:470px; height:100dvh; max-height:920px;
+  display:flex; flex-direction:column; position:relative; overflow:hidden;
+  background:var(--shell);
+}
+@media (min-width:520px) and (min-height:700px){
+  .app{ height:min(860px,92dvh); border-radius:26px; box-shadow:var(--shadow); border:1px solid var(--line); }
+}
+
+/* ── 시작 화면 ──────────────────────────── */
+.intro{
+  position:absolute; inset:0; z-index:20;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:32px 26px; background:var(--shell);
   background-image:
-    radial-gradient(900px 600px at 12% -8%,  var(--bg-tint-a), transparent 60%),
-    radial-gradient(800px 500px at 92% 4%,   var(--bg-tint-b), transparent 58%);
-  background-attachment: fixed;
-  color: var(--text);
-  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
-               "Apple SD Gothic Neo", system-ui, sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  letter-spacing: -0.011em;
+    radial-gradient(620px 420px at 14% 6%,rgba(240,76,116,.13),transparent 62%),
+    radial-gradient(580px 400px at 88% 16%,rgba(61,123,245,.13),transparent 60%);
+  transition:opacity .45s ease,transform .45s cubic-bezier(.22,1,.36,1);
 }
+.intro.hide{ opacity:0; transform:scale(.97); pointer-events:none; }
+.intro h1{ margin:0 0 10px; font-size:27px; font-weight:750; letter-spacing:-.032em; line-height:1.3; }
+.intro p{ margin:0 0 30px; color:var(--text-2); font-size:15px; }
+.picks{ display:grid; gap:12px; }
+.pick{
+  display:flex; align-items:center; gap:14px; width:100%;
+  padding:17px 18px; border:1.5px solid var(--line); border-radius:17px;
+  background:var(--bub); color:var(--text); font:inherit; font-weight:600;
+  cursor:pointer; text-align:left;
+  transition:transform .18s cubic-bezier(.22,1,.36,1),border-color .18s,box-shadow .18s;
+}
+.pick:hover{ transform:translateY(-2px); box-shadow:var(--shadow); }
+.pick small{ display:block; font-weight:450; font-size:12.5px; color:var(--muted); margin-top:1px; }
+.pick[data-g="f"]:hover{ border-color:#f04c74 }
+.pick[data-g="m"]:hover{ border-color:#3d7bf5 }
+.pick .av{ flex:0 0 46px; height:46px; }
+.intro .note{ margin:26px 0 0; font-size:12px; color:var(--muted); text-align:center; line-height:1.7; }
 
-/* ── 상단 진행률 막대 ─────────────────────────── */
-.progress {
-  position: fixed; inset: 0 0 auto; height: 3px;
-  background: var(--line-soft); z-index: 50;
+/* ── 아바타 ────────────────────────────── */
+.av{
+  width:34px; height:34px; border-radius:50%; flex-shrink:0;
+  display:grid; place-items:center; overflow:hidden;
+  background:linear-gradient(140deg,var(--accent),var(--accent-2));
+  color:#fff; font-size:13px; font-weight:700;
 }
-.progress-fill {
-  height: 100%; width: 0%;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  transition: width .45s cubic-bezier(.22,1,.36,1);
-}
+.av.f{ background:linear-gradient(140deg,#f04c74,#f97362) }
+.av.m{ background:linear-gradient(140deg,#3d7bf5,#3fb8e0) }
 
-main { max-width: 620px; margin: 0 auto; }
+/* ── 헤더 ─────────────────────────────── */
+.bar{
+  display:flex; align-items:center; gap:11px; padding:14px 16px;
+  border-bottom:1px solid var(--line);
+  background:var(--head); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  position:relative; z-index:5;
+}
+.bar .who{ flex:1; min-width:0 }
+.bar b{ display:block; font-size:15px; font-weight:650; letter-spacing:-.02em }
+.bar .st{ font-size:11.5px; color:var(--muted); display:flex; align-items:center; gap:5px }
+.dot{ width:6px; height:6px; border-radius:50%; background:#22c55e }
+.step{ font-size:11.5px; color:var(--muted); font-variant-numeric:tabular-nums }
 
-/* ── 헤더 ──────────────────────────────────── */
-header { padding: 72px 4px 36px; }
-.eyebrow {
-  display: inline-flex; align-items: center; gap: 7px;
-  font-size: 12px; font-weight: 600; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--accent);
-  padding: 6px 12px; border-radius: 999px;
-  background: var(--accent-sh); opacity: .95;
+/* ── 대화 로그 ──────────────────────────── */
+.log{
+  flex:1; overflow-y:auto; overscroll-behavior:contain;
+  padding:18px 14px 8px; display:flex; flex-direction:column; gap:3px;
+  scrollbar-width:thin;
 }
-.eyebrow::before {
-  content: ''; width: 6px; height: 6px; border-radius: 50%;
-  background: currentColor;
-}
-h1 {
-  margin: 18px 0 10px;
-  font-size: clamp(30px, 6.4vw, 40px);
-  font-weight: 700; line-height: 1.22; letter-spacing: -0.032em;
-}
-.lead { margin: 0; color: var(--text-2); font-size: 16px; max-width: 46ch; }
-.meta {
-  margin: 20px 0 0; display: flex; flex-wrap: wrap; gap: 8px;
-  font-size: 13px; color: var(--muted);
-}
-.chip {
-  padding: 5px 11px; border-radius: 999px;
-  border: 1px solid var(--line); background: var(--card);
-}
+.log::-webkit-scrollbar{ width:6px }
+.log::-webkit-scrollbar-thumb{ background:var(--line); border-radius:3px }
 
-/* ── 문항 카드 ──────────────────────────────── */
-.q {
-  position: relative;
-  background: var(--card);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 24px 22px;
-  margin-bottom: 14px;
-  box-shadow: var(--shadow);
-  transition: border-color .25s, box-shadow .25s, transform .25s;
-}
-.q:focus-within { border-color: var(--accent); box-shadow: var(--shadow-lg); }
-.q.answered { border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+.row{ display:flex; gap:8px; align-items:flex-end; margin-top:9px; animation:pop .32s cubic-bezier(.22,1,.36,1) }
+.row.me{ flex-direction:row-reverse }
+.row.tight{ margin-top:2px }
+.row .av{ opacity:0 }
+.row.first .av{ opacity:1 }
+.row.me .av{ display:none }
 
-.q-head { display: flex; gap: 12px; margin-bottom: 16px; }
-.q-num {
-  flex: 0 0 26px; height: 26px; margin-top: 1px;
-  display: grid; place-items: center;
-  font-size: 12px; font-weight: 700;
-  color: var(--accent); background: var(--accent-sh);
-  border-radius: 8px; transition: all .3s;
+.bub{
+  max-width:74%; padding:10px 14px; font-size:14.7px; line-height:1.55;
+  border-radius:17px; white-space:pre-wrap; word-break:break-word;
 }
-.q.answered .q-num {
-  color: #fff;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+.row.them .bub{ background:var(--bub); border:1px solid var(--bub-line); border-bottom-left-radius:6px; }
+.row.them.tight .bub{ border-top-left-radius:6px }
+.row.me .bub{
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:var(--on-accent); border-bottom-right-radius:6px;
+  box-shadow:0 3px 12px var(--accent-soft);
 }
-.q-title { font-size: 16.5px; font-weight: 650; letter-spacing: -0.016em; }
-.q-sub { margin: 3px 0 0; font-size: 13px; color: var(--muted); }
-.req { color: var(--danger); font-weight: 500; }
+.row.me.tight .bub{ border-top-right-radius:6px }
+.t{ font-size:10.5px; color:var(--muted); flex-shrink:0; padding-bottom:3px }
 
-/* ── 선택지 ────────────────────────────────── */
-.opts { display: grid; gap: 8px; }
-.opts.grid-2 { grid-template-columns: repeat(2, 1fr); }
-.opts.grid-3 { grid-template-columns: repeat(3, 1fr); }
-.opts.scale  { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.typing{ display:flex; gap:4px; padding:14px 15px }
+.typing i{ width:6px; height:6px; border-radius:50%; background:var(--muted); animation:blink 1.3s infinite }
+.typing i:nth-child(2){ animation-delay:.18s } .typing i:nth-child(3){ animation-delay:.36s }
 
-.opt { position: relative; display: block; cursor: pointer; }
-.opt input {
-  position: absolute; opacity: 0; width: 0; height: 0;
-}
-.box {
-  display: flex; align-items: center; gap: 11px;
-  padding: 13px 15px;
-  border: 1.5px solid var(--line);
-  border-radius: 12px;
-  background: var(--card-solid);
-  font-size: 15px; color: var(--text-2);
-  transition: all .18s cubic-bezier(.22,1,.36,1);
-}
-.opt:hover .box { border-color: var(--muted); transform: translateY(-1px); }
-.opt input:focus-visible + .box { outline: 2px solid var(--accent); outline-offset: 2px; }
-.opt input:checked + .box {
-  border-color: var(--accent);
-  background: var(--accent-sh);
-  color: var(--text);
-  font-weight: 600;
-}
+.sys{ align-self:center; margin:14px 0 4px; padding:5px 13px; border-radius:999px;
+      background:var(--accent-soft); color:var(--accent); font-size:11.5px; font-weight:600 }
 
-.mark {
-  flex: 0 0 18px; height: 18px;
-  border: 1.5px solid var(--muted); border-radius: 50%;
-  display: grid; place-items: center;
-  transition: all .18s;
+/* ── 입력부 ────────────────────────────── */
+.foot{ border-top:1px solid var(--line); background:var(--head);
+       backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+       padding:10px 12px calc(10px + env(safe-area-inset-bottom)); }
+.chips{ display:flex; flex-wrap:wrap; gap:7px; padding:0 2px 10px }
+.chips:empty{ display:none }
+.chip{
+  padding:9px 15px; border-radius:999px; border:1.5px solid var(--accent);
+  background:transparent; color:var(--accent); font:inherit; font-size:13.5px; font-weight:600;
+  cursor:pointer; transition:all .16s cubic-bezier(.22,1,.36,1);
+  animation:pop .3s cubic-bezier(.22,1,.36,1) backwards;
 }
-.mark.sq { border-radius: 6px; }
-.mark::after {
-  content: ''; width: 8px; height: 8px; border-radius: 50%;
-  background: #fff; transform: scale(0); transition: transform .18s cubic-bezier(.34,1.56,.64,1);
-}
-.mark.sq::after {
-  width: 10px; height: 10px; border-radius: 0; background: none;
-  border-left: 2px solid #fff; border-bottom: 2px solid #fff;
-  transform: rotate(-45deg) scale(0); margin-top: -2px;
-}
-.opt input:checked + .box .mark {
-  border-color: transparent;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-}
-.opt input:checked + .box .mark::after { transform: scale(1); }
-.opt input:checked + .box .mark.sq::after { transform: rotate(-45deg) scale(1); }
+.chip:hover{ background:var(--accent-soft); transform:translateY(-1px) }
+.chip.on{ background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; border-color:transparent }
+.chip.go{ background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; border-color:transparent }
+.chip.skip{ border-color:var(--line); color:var(--muted) }
+.chip.skip:hover{ background:var(--line) }
 
-/* 만족도 5점 척도 */
-.scale .box {
-  flex-direction: column; gap: 4px; padding: 14px 4px;
-  text-align: center; justify-content: center;
+.entry{ display:flex; gap:8px; align-items:flex-end }
+.entry textarea{
+  flex:1; min-height:42px; max-height:110px; resize:none;
+  padding:10px 15px; border:1.5px solid var(--line); border-radius:21px;
+  background:var(--field); color:var(--text); font:inherit; font-size:15px; line-height:1.45;
+  transition:border-color .18s;
 }
-.scale .s-face { font-size: 19px; font-weight: 700; line-height: 1.1; }
-.scale .s-txt  { font-size: 11.5px; letter-spacing: -0.02em; }
-.scale-ends {
-  display: flex; justify-content: space-between;
-  margin-top: 9px; font-size: 11.5px; color: var(--muted);
+.entry textarea:focus{ outline:none; border-color:var(--accent) }
+.entry textarea::placeholder{ color:var(--muted) }
+.entry textarea:disabled{ opacity:.5 }
+.send{
+  flex:0 0 42px; height:42px; border:0; border-radius:50%; cursor:pointer;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid; place-items:center; transition:transform .16s,opacity .16s;
 }
+.send:hover:not(:disabled){ transform:scale(1.06) }
+.send:disabled{ opacity:.35; cursor:default }
+.send svg{ width:19px; height:19px; stroke:#fff; fill:none; stroke-width:2.2;
+           stroke-linecap:round; stroke-linejoin:round }
 
-/* ── 주관식 ────────────────────────────────── */
-textarea {
-  width: 100%; min-height: 108px; resize: vertical;
-  padding: 14px 15px;
-  border: 1.5px solid var(--line); border-radius: 12px;
-  background: var(--card-solid); color: var(--text);
-  font: inherit; font-size: 15px; line-height: 1.65;
-  transition: border-color .18s;
-}
-textarea::placeholder { color: var(--muted); }
-textarea:focus { outline: none; border-color: var(--accent); }
-.count { margin-top: 7px; text-align: right; font-size: 12px; color: var(--muted); }
+.hp{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden }
 
-/* ── 제출 ─────────────────────────────────── */
-.submit-zone { margin-top: 26px; }
-button {
-  width: 100%; padding: 17px;
-  border: 0; border-radius: 14px;
-  font: inherit; font-size: 16px; font-weight: 650; color: #fff;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 6px 20px var(--accent-sh);
-  cursor: pointer;
-  transition: transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s, filter .18s;
-}
-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 28px var(--accent-sh); }
-button:active:not(:disabled) { transform: translateY(0); }
-button:disabled { filter: grayscale(.85) brightness(.85); cursor: not-allowed; box-shadow: none; }
-
-#msg { margin-top: 14px; text-align: center; font-size: 14px; color: var(--text-2); min-height: 22px; }
-#msg.err { color: var(--danger); }
-
-.privacy {
-  margin: 30px auto 0; max-width: 42ch;
-  text-align: center; font-size: 12.5px; line-height: 1.7; color: var(--muted);
-}
-
-/* ── 완료 화면 ─────────────────────────────── */
-.done {
-  text-align: center; padding: 64px 26px;
-  background: var(--card); backdrop-filter: blur(14px);
-  border: 1px solid var(--line); border-radius: 22px;
-  box-shadow: var(--shadow-lg);
-  animation: rise .5s cubic-bezier(.22,1,.36,1);
-}
-.done-ring {
-  width: 64px; height: 64px; margin: 0 auto 22px;
-  display: grid; place-items: center; border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 8px 26px var(--accent-sh);
-}
-.done-ring svg { width: 30px; height: 30px; }
-.done-ring path {
-  stroke-dasharray: 32; stroke-dashoffset: 32;
-  animation: draw .45s .18s cubic-bezier(.65,0,.35,1) forwards;
-}
-.done h2 { margin: 0 0 8px; font-size: 21px; font-weight: 700; letter-spacing: -0.02em; }
-.done p  { margin: 0; color: var(--text-2); font-size: 15px; }
-
-@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
-@keyframes draw { to { stroke-dashoffset: 0; } }
-
-/* 문항 등장 애니메이션 */
-.q { animation: rise .5s cubic-bezier(.22,1,.36,1) backwards; }
-.q:nth-of-type(1){animation-delay:.02s} .q:nth-of-type(2){animation-delay:.06s}
-.q:nth-of-type(3){animation-delay:.10s} .q:nth-of-type(4){animation-delay:.14s}
-.q:nth-of-type(5){animation-delay:.18s} .q:nth-of-type(6){animation-delay:.22s}
-.q:nth-of-type(7){animation-delay:.26s}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
-  html { scroll-behavior: auto; }
-}
-
-@media (max-width: 420px) {
-  header { padding-top: 52px; }
-  .q { padding: 20px 17px; }
-  .opts.grid-2, .opts.grid-3 { grid-template-columns: 1fr; }
-  .scale .s-txt { font-size: 10.5px; }
-}
-
-.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+@keyframes pop{ from{ opacity:0; transform:translateY(7px) } }
+@keyframes blink{ 0%,60%,100%{ opacity:.28; transform:translateY(0) } 30%{ opacity:1; transform:translateY(-3px) } }
+@media (prefers-reduced-motion:reduce){ *{ animation:none!important; transition:none!important } }
 </style>
 </head>
 <body>
 
-<div class="progress"><div class="progress-fill" id="bar"></div></div>
+<div class="app">
 
-<main>
-  <header>
-    <span class="eyebrow">Survey</span>
-    <h1>서비스를 어떻게<br>경험하셨나요?</h1>
-    <p class="lead">여러분의 의견이 다음 업데이트의 방향이 됩니다. 솔직한 생각을 들려주세요.</p>
-    <div class="meta">
-      <span class="chip">7문항</span>
-      <span class="chip">약 1분 소요</span>
-      <span class="chip">익명 응답</span>
+  <!-- 시작 화면 -->
+  <section class="intro" id="intro">
+    <h1>잠깐, 얘기 좀 할까?</h1>
+    <p>설문지처럼 딱딱하게 말고<br>그냥 편하게 얘기하듯 답해줘.</p>
+    <div class="picks">
+      <button class="pick" data-g="f" type="button">
+        <span class="av f">언니</span>
+        <span>언니랑 얘기할래<small>여성</small></span>
+      </button>
+      <button class="pick" data-g="m" type="button">
+        <span class="av m">형</span>
+        <span>형이랑 얘기할래<small>남성</small></span>
+      </button>
     </div>
-  </header>
+    <p class="note">답은 아래 버튼을 눌러도 되고,<br>직접 채팅으로 적어줘도 돼.</p>
+  </section>
 
-  <form id="survey" novalidate>
-
-    <div class="hp" aria-hidden="true">
-      <label>홈페이지 <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+  <!-- 채팅 헤더 -->
+  <div class="bar">
+    <span class="av" id="hav">?</span>
+    <div class="who">
+      <b id="hname">누구랑 얘기할까</b>
+      <span class="st"><i class="dot"></i><span id="hstat">온라인</span></span>
     </div>
+    <span class="step" id="hstep"></span>
+  </div>
 
-    <!-- 1 -->
-    <fieldset class="q">
-      <div class="q-head">
-        <span class="q-num">1</span>
-        <div>
-          <div class="q-title">연령대를 알려주세요 <span class="req">*</span></div>
-          <p class="q-sub">하나만 선택</p>
-        </div>
-      </div>
-      <div class="opts grid-3">
-        <label class="opt"><input type="radio" name="연령대" value="10대" required><span class="box"><span class="mark"></span>10대</span></label>
-        <label class="opt"><input type="radio" name="연령대" value="20대"><span class="box"><span class="mark"></span>20대</span></label>
-        <label class="opt"><input type="radio" name="연령대" value="30대"><span class="box"><span class="mark"></span>30대</span></label>
-        <label class="opt"><input type="radio" name="연령대" value="40대"><span class="box"><span class="mark"></span>40대</span></label>
-        <label class="opt"><input type="radio" name="연령대" value="50대 이상"><span class="box"><span class="mark"></span>50대+</span></label>
-      </div>
-    </fieldset>
+  <!-- 대화 -->
+  <div class="log" id="log"></div>
 
-    <!-- 2 -->
-    <fieldset class="q">
-      <div class="q-head">
-        <span class="q-num">2</span>
-        <div>
-          <div class="q-title">저희를 어떻게 알게 되셨나요? <span class="req">*</span></div>
-          <p class="q-sub">하나만 선택</p>
-        </div>
-      </div>
-      <div class="opts">
-        <label class="opt"><input type="radio" name="유입경로" value="지인 추천" required><span class="box"><span class="mark"></span>지인 추천</span></label>
-        <label class="opt"><input type="radio" name="유입경로" value="검색 (구글, 네이버 등)"><span class="box"><span class="mark"></span>검색 (구글, 네이버 등)</span></label>
-        <label class="opt"><input type="radio" name="유입경로" value="SNS"><span class="box"><span class="mark"></span>SNS (인스타그램, 유튜브 등)</span></label>
-        <label class="opt"><input type="radio" name="유입경로" value="광고"><span class="box"><span class="mark"></span>광고</span></label>
-        <label class="opt"><input type="radio" name="유입경로" value="기타"><span class="box"><span class="mark"></span>기타</span></label>
-      </div>
-    </fieldset>
-
-    <!-- 3 -->
-    <fieldset class="q">
-      <div class="q-head">
-        <span class="q-num">3</span>
-        <div>
-          <div class="q-title">전반적인 만족도는 어떠셨나요? <span class="req">*</span></div>
-          <p class="q-sub">1점에서 5점 사이로 선택</p>
-        </div>
-      </div>
-      <div class="opts scale">
-        <label class="opt"><input type="radio" name="만족도" value="1 매우 불만족" required><span class="box"><span class="s-face">1</span><span class="s-txt">매우 불만</span></span></label>
-        <label class="opt"><input type="radio" name="만족도" value="2 불만족"><span class="box"><span class="s-face">2</span><span class="s-txt">불만족</span></span></label>
-        <label class="opt"><input type="radio" name="만족도" value="3 보통"><span class="box"><span class="s-face">3</span><span class="s-txt">보통</span></span></label>
-        <label class="opt"><input type="radio" name="만족도" value="4 만족"><span class="box"><span class="s-face">4</span><span class="s-txt">만족</span></span></label>
-        <label class="opt"><input type="radio" name="만족도" value="5 매우 만족"><span class="box"><span class="s-face">5</span><span class="s-txt">매우 만족</span></span></label>
-      </div>
-      <div class="scale-ends"><span>전혀 만족스럽지 않음</span><span>매우 만족스러움</span></div>
-    </fieldset>
-
-    <!-- 4 -->
-    <fieldset class="q">
-      <div class="q-head">
-        <span class="q-num">4</span>
-        <div>
-          <div class="q-title">어떤 점이 좋으셨나요?</div>
-          <p class="q-sub">해당하는 것을 모두 선택</p>
-        </div>
-      </div>
-      <div class="opts">
-        <label class="opt"><input type="checkbox" name="유용한점" value="사용 편의성"><span class="box"><span class="mark sq"></span>사용이 쉽고 편리함</span></label>
-        <label class="opt"><input type="checkbox" name="유용한점" value="속도"><span class="box"><span class="mark sq"></span>빠른 속도</span></label>
-        <label class="opt"><input type="checkbox" name="유용한점" value="디자인"><span class="box"><span class="mark sq"></span>보기 좋은 디자인</span></label>
-        <label class="opt"><input type="checkbox" name="유용한점" value="가격"><span class="box"><span class="mark sq"></span>합리적인 가격</span></label>
-        <label class="opt"><input type="checkbox" name="유용한점" value="고객지원"><span class="box"><span class="mark sq"></span>친절한 고객 지원</span></label>
-      </div>
-    </fieldset>
-
-    <!-- 5 -->
-    <fieldset class="q">
-      <div class="q-head">
-        <span class="q-num">5</span>
-        <div>
-          <div class="q-title">주변에 추천하실 의향이 있나요? <span class="req">*</span></div>
-          <p class="q-sub">하나만 선택</p>
-        </div>
-      </div>
-      <div class="opts grid-3">
-        <label class="opt"><input type="radio" name="추천의향" value="예" required><span class="box"><span class="mark"></span>네</span></label>
-        <label class="opt"><input type="radio" name="추천의향" value="아니오"><span class="box"><span class="mark"></span>아니요</span></label>
-        <label class="opt"><input type="radio" name="추천의향" value="잘 모르겠음"><span class="box"><span class="mark"></span>글쎄요</span></label>
-      </div>
-    </fieldset>
-
-    <!-- 6 -->
-    <fieldset class="q">
-      <div class="q-head">
-        <span class="q-num">6</span>
-        <div>
-          <div class="q-title">가장 좋았던 점은 무엇인가요? <span class="req">*</span></div>
-          <p class="q-sub">자유롭게 적어주세요</p>
-        </div>
-      </div>
-      <textarea name="좋았던점" required maxlength="500"
-        placeholder="예: 처음 써보는데도 헤매지 않고 바로 쓸 수 있었어요."></textarea>
-      <div class="count"><span>0</span> / 500</div>
-    </fieldset>
-
-    <!-- 7 -->
-    <fieldset class="q">
-      <div class="q-head">
-        <span class="q-num">7</span>
-        <div>
-          <div class="q-title">더 나아졌으면 하는 점이 있다면?</div>
-          <p class="q-sub">선택 문항입니다</p>
-        </div>
-      </div>
-      <textarea name="개선점" maxlength="500"
-        placeholder="불편했던 점이나 추가되길 바라는 기능을 알려주세요."></textarea>
-      <div class="count"><span>0</span> / 500</div>
-    </fieldset>
-
-    <div class="submit-zone">
-      <button type="submit">응답 제출하기</button>
-      <p id="msg" role="status" aria-live="polite"></p>
+  <!-- 입력 -->
+  <div class="foot">
+    <div class="chips" id="chips"></div>
+    <div class="entry">
+      <textarea id="input" rows="1" placeholder="메시지를 입력하세요" disabled
+                autocomplete="off" enterkeyhint="send"></textarea>
+      <button class="send" id="send" type="button" disabled aria-label="보내기">
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
     </div>
-  </form>
+  </div>
 
-  <p class="privacy">
-    응답은 서비스 개선 목적으로만 사용되며,<br>
-    이름·연락처 등 개인을 식별할 수 있는 정보는 수집하지 않습니다.
-  </p>
-</main>
+  <div class="hp" aria-hidden="true">
+    <label>홈페이지 <input type="text" id="hp" tabindex="-1" autocomplete="off"></label>
+  </div>
+</div>
 
 <script>
-// ── 설정: Apps Script 웹 앱 주소 ──────────────────────
+// ── 설정: Apps Script 웹 앱 주소 ──────────────────────────────
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyoY955vCmQSYgXuC2JgvWME4uSujfCapjPJFFwNZDsFtXEpRim_vQEdj_HYetex_-6Qw/exec';
 
-const form = document.getElementById('survey');
-const msg  = document.getElementById('msg');
-const bar  = document.getElementById('bar');
+const $ = function (id) { return document.getElementById(id); };
+const log = $('log'), chips = $('chips'), input = $('input'), sendBtn = $('send');
+const sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
 
-// 진행률: 필수 문항(연령대·유입경로·만족도·추천의향·좋았던점) 기준
-const REQUIRED = ['연령대', '유입경로', '만족도', '추천의향', '좋았던점'];
+const PERSONA = { f: { name: '언니' }, m: { name: '형' } };
+let g = null;                 // 'f' | 'm'
+let step = 0;
+let picked = [];              // 복수 선택 임시 보관
+let waiting = false;          // 사용자 입력 대기 중인지
+const answers = {};
 
-function refresh() {
-  let done = 0;
-  REQUIRED.forEach(function (name) {
-    const v = form.elements[name];
-    const filled = v instanceof RadioNodeList
-      ? Array.from(v).some(function (i) { return i.checked; })
-      : v.value.trim() !== '';
-    if (filled) done++;
-  });
-  bar.style.width = (done / REQUIRED.length * 100) + '%';
+/* 말풍선 대본.
+   문자열 하나면 남녀 공통, {f:'',m:''} 면 말투를 따로 씁니다.       */
+const FLOW = [
+  {
+    key: '연령대',
+    ask: [
+      { f: '와 반가워! 나 요즘 이거 만들고 있는데\n솔직한 얘기 좀 듣고 싶어서 ㅎㅎ',
+        m: '오 왔네 ㅋㅋ 반갑다\n나 요즘 이거 만들고 있는데 솔직한 얘기 좀 듣고 싶어서' },
+      '오래 안 걸려, 1분이면 돼!',
+      { f: '먼저 너 몇 살대야?', m: '일단 너 몇 살대냐?' }
+    ],
+    options: ['10대', '20대', '30대', '40대', '50대 이상']
+  },
+  {
+    key: '유입경로',
+    ask: [
+      { f: '오케이 ㅎㅎ\n근데 우리 어떻게 알게 됐더라?',
+        m: 'ㅇㅋㅇㅋ\n근데 우리 어떻게 알게 됐지?' }
+    ],
+    options: [
+      { label: '아는 사람이 알려줬어', value: '지인 추천' },
+      { label: '검색하다 봤어', value: '검색 (구글, 네이버 등)' },
+      { label: 'SNS에서', value: 'SNS' },
+      { label: '광고 보고', value: '광고' },
+      { label: '기억 안 나', value: '기타' }
+    ]
+  },
+  {
+    key: '만족도',
+    ask: [
+      { f: '그렇구나!\n그럼 이제 진짜 솔직하게 물어볼게',
+        m: '그렇구나\n자 이제 진짜 솔직하게 하나 물어볼게' },
+      { f: '5점 만점이면 몇 점 줄 거야?\n눈치보지 말고 ㅋㅋ', m: '5점 만점에 몇 점?\n눈치 ㄴㄴ 솔직하게 ㅋㅋ' }
+    ],
+    options: [
+      { label: '1점', value: '1 매우 불만족' },
+      { label: '2점', value: '2 불만족' },
+      { label: '3점', value: '3 보통' },
+      { label: '4점', value: '4 만족' },
+      { label: '5점', value: '5 매우 만족' }
+    ]
+  },
+  {
+    key: '유용한점',
+    multi: true,
+    ask: [
+      { f: '고마워 ㅠㅠ\n어떤 점이 괜찮았어? 여러 개 골라도 돼!',
+        m: '오케이 고맙다\n어떤 게 괜찮았냐? 여러 개 골라도 됨' }
+    ],
+    options: ['사용 편의성', '속도', '디자인', '가격', '고객지원'],
+    labels: {
+      '사용 편의성': '쓰기 편했어', '속도': '빨라서 좋았어', '디자인': '디자인이 예뻐',
+      '가격': '가격이 괜찮아', '고객지원': '문의하면 잘 답해줘'
+    }
+  },
+  {
+    key: '추천의향',
+    ask: [
+      { f: '오 그랬구나!\n그럼 친구한테 추천할 만해?', m: '오키 ㅋㅋ\n그럼 친구한테 추천할 만하냐?' }
+    ],
+    options: [
+      { label: '응 추천할 거야', value: '예' },
+      { label: '음 아닌 것 같아', value: '아니오' },
+      { label: '아직 잘 모르겠어', value: '잘 모르겠음' }
+    ]
+  },
+  {
+    key: '좋았던점',
+    free: true,
+    ask: [
+      { f: '이제 거의 다 왔어!\n제일 좋았던 거 하나만 말해줄래? 짧아도 괜찮아',
+        m: '거의 다 왔다\n제일 좋았던 거 하나만 말해줘라 짧아도 됨' }
+    ],
+    placeholder: '편하게 적어줘'
+  },
+  {
+    key: '개선점',
+    free: true, optional: true,
+    ask: [
+      { f: '고마워! 마지막이야\n반대로 이건 좀 고쳤으면 좋겠다 하는 거 있어?',
+        m: 'ㅇㅋ 마지막\n반대로 이건 좀 고쳤으면 하는 거 있냐?' }
+    ],
+    placeholder: '없으면 그냥 넘어가도 돼',
+    skip: '딱히 없어'
+  }
+];
 
-  // 응답한 문항 카드에 표시
-  form.querySelectorAll('.q').forEach(function (card) {
-    const inputs = card.querySelectorAll('input, textarea');
-    const any = Array.from(inputs).some(function (i) {
-      return i.type === 'radio' || i.type === 'checkbox' ? i.checked : i.value.trim() !== '';
-    });
-    card.classList.toggle('answered', any);
-  });
+/* ── 유틸 ─────────────────────────────── */
+function pick(v) { return (v && typeof v === 'object' && 'f' in v) ? v[g] : v; }
+
+function now() {
+  const d = new Date(), h = d.getHours();
+  return (h < 12 ? '오전 ' : '오후 ') + (h % 12 || 12) + ':' + String(d.getMinutes()).padStart(2, '0');
 }
 
-// 글자 수 표시
-form.querySelectorAll('textarea').forEach(function (ta) {
-  const counter = ta.parentElement.querySelector('.count span');
-  ta.addEventListener('input', function () { counter.textContent = ta.value.length; });
-});
+function toBottom() { log.scrollTop = log.scrollHeight; }
 
-form.addEventListener('input',  refresh);
-form.addEventListener('change', refresh);
-refresh();
+let lastSide = null;
+function bubble(side, text) {
+  const row = document.createElement('div');
+  row.className = 'row ' + side + (lastSide === side ? ' tight' : ' first');
+  lastSide = side;
 
-form.addEventListener('submit', async function (ev) {
-  ev.preventDefault();
+  const av = document.createElement('span');
+  av.className = 'av ' + g;
+  av.textContent = PERSONA[g].name;
 
-  if (!form.checkValidity()) {
-    form.reportValidity();
-    const bad = form.querySelector(':invalid');
-    if (bad) bad.closest('.q').scrollIntoView({ block: 'center' });
-    return;
+  const b = document.createElement('div');
+  b.className = 'bub';
+  b.textContent = text;
+
+  const t = document.createElement('span');
+  t.className = 't';
+  t.textContent = now();
+
+  row.appendChild(av); row.appendChild(b); row.appendChild(t);
+  log.appendChild(row); toBottom();
+}
+
+async function say(text) {
+  // 입력 중 표시
+  const row = document.createElement('div');
+  row.className = 'row them first';
+  const av = document.createElement('span');
+  av.className = 'av ' + g; av.textContent = PERSONA[g].name;
+  const b = document.createElement('div');
+  b.className = 'bub typing';
+  b.innerHTML = '<i></i><i></i><i></i>';
+  row.appendChild(av); row.appendChild(b);
+  log.appendChild(row); toBottom();
+
+  $('hstat').textContent = '입력 중...';
+  await sleep(Math.min(1100, Math.max(420, text.length * 42)));
+  row.remove();
+  $('hstat').textContent = '온라인';
+
+  bubble('them', text);
+  await sleep(180);
+}
+
+function setEntry(on, ph) {
+  input.disabled = !on;
+  sendBtn.disabled = !on;
+  input.placeholder = ph || '메시지를 입력하세요';
+  if (on) setTimeout(function () { if (window.innerWidth > 640) input.focus(); }, 60);
+}
+
+/* ── 진행 ─────────────────────────────── */
+async function runStep() {
+  if (step >= FLOW.length) return finish();
+
+  const s = FLOW[step];
+  $('hstep').textContent = (step + 1) + ' / ' + FLOW.length;
+
+  chips.innerHTML = '';
+  setEntry(false);
+  waiting = false;
+  picked = [];
+
+  for (const line of s.ask) await say(pick(line));
+
+  // 선택지 버튼
+  if (s.options) {
+    s.options.forEach(function (o, i) {
+      const value = typeof o === 'string' ? o : o.value;
+      const label = typeof o === 'string' ? (s.labels && s.labels[o]) || o : o.label;
+      const c = document.createElement('button');
+      c.type = 'button'; c.className = 'chip'; c.textContent = label;
+      c.style.animationDelay = (i * 40) + 'ms';
+      c.onclick = function () {
+        if (s.multi) {
+          const at = picked.indexOf(value);
+          if (at >= 0) picked.splice(at, 1); else picked.push(value);
+          c.classList.toggle('on');
+          confirm.style.display = picked.length ? '' : 'none';
+        } else {
+          answer(value, label);
+        }
+      };
+      chips.appendChild(c);
+    });
   }
 
-  if (ENDPOINT.startsWith('PASTE_')) {
-    msg.className = 'err';
-    msg.textContent = 'Apps Script 주소가 연결되지 않았습니다. index.html의 ENDPOINT를 확인하세요.';
-    return;
+  // 복수 선택 확정 버튼
+  var confirm = null;
+  if (s.multi) {
+    confirm = document.createElement('button');
+    confirm.type = 'button'; confirm.className = 'chip go';
+    confirm.textContent = '다 골랐어';
+    confirm.style.display = 'none';
+    confirm.onclick = function () {
+      if (!picked.length) return;
+      const labels = picked.map(function (v) { return (s.labels && s.labels[v]) || v; });
+      answer(picked.join(', '), labels.join(', '));
+    };
+    chips.appendChild(confirm);
   }
 
-  const btn = form.querySelector('button');
-  btn.disabled = true;
-  msg.className = '';
-  msg.textContent = '전송 중입니다...';
-
-  // 체크박스처럼 같은 이름이 여러 번 오는 항목은 쉼표로 합칩니다.
-  const data = {};
-  for (const [key, value] of new FormData(form).entries()) {
-    data[key] = (key in data) ? data[key] + ', ' + value : value;
+  // 건너뛰기
+  if (s.skip) {
+    const sk = document.createElement('button');
+    sk.type = 'button'; sk.className = 'chip skip'; sk.textContent = s.skip;
+    sk.onclick = function () { answer('', s.skip); };
+    chips.appendChild(sk);
   }
+
+  waiting = true;
+  setEntry(true, s.placeholder || '골라도 되고 직접 적어도 돼');
+  toBottom();
+}
+
+/* 답변 확정 — value는 시트에 저장될 값, shown은 말풍선에 보일 문구 */
+function answer(value, shown) {
+  if (!waiting) return;
+  waiting = false;
+
+  const s = FLOW[step];
+  answers[s.key] = value;
+
+  bubble('me', shown || value || '(넘어감)');
+  chips.innerHTML = '';
+  setEntry(false);
+  input.value = ''; input.style.height = '';
+
+  step++;
+  setTimeout(runStep, 420);
+}
+
+/* 직접 타이핑한 답변 */
+function sendTyped() {
+  const v = input.value.trim();
+  if (!v || !waiting) return;
+  answer(v, v);
+}
+
+/* ── 전송 ─────────────────────────────── */
+async function finish() {
+  $('hstep').textContent = '';
+  await say(pick({ f: '좋아, 다 끝났어! 잠깐만 저장할게...', m: 'ㅇㅋ 끝! 잠깐만 저장할게' }));
+
+  answers['성별'] = (g === 'f' ? '여성' : '남성');
+  const hpv = $('hp').value;
+  if (hpv) answers['website'] = hpv;
 
   try {
-    // text/plain 으로 보내야 브라우저의 사전 요청(OPTIONS) 없이 Apps Script에 도달합니다.
     await fetch(ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(data),
+      body: JSON.stringify(answers)
     });
 
-    bar.style.width = '100%';
-    form.outerHTML =
-      '<div class="done">' +
-        '<div class="done-ring">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" ' +
-               'stroke-linecap="round" stroke-linejoin="round">' +
-            '<path d="M4 12.5l5.2 5.2L20 7"/>' +
-          '</svg>' +
-        '</div>' +
-        '<h2>제출이 완료되었습니다</h2>' +
-        '<p>소중한 의견 감사합니다.<br>더 나은 서비스로 보답하겠습니다.</p>' +
-      '</div>';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    await say(pick({
+      f: '저장 완료! 진짜 고마워 ㅠㅠ\n네 얘기 잘 참고해서 더 좋게 만들어볼게',
+      m: '저장 완료 ㅋㅋ 진짜 고맙다\n얘기해준 거 잘 참고해서 더 좋게 만들어볼게'
+    }));
+    await say(pick({ f: '오늘 하루도 잘 보내! 🤍', m: '오늘 하루도 잘 보내라 👍' }));
+
+    const end = document.createElement('div');
+    end.className = 'sys'; end.textContent = '대화가 종료되었습니다';
+    log.appendChild(end); toBottom();
+    $('hstat').textContent = '대화 종료';
+
   } catch (err) {
-    msg.className = 'err';
-    msg.textContent = '전송에 실패했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
-    btn.disabled = false;
+    await say(pick({
+      f: '앗, 저장이 안 됐어 ㅠㅠ 인터넷 확인하고 다시 눌러줄래?',
+      m: '앗 저장이 안 됐다 인터넷 확인하고 다시 눌러줘'
+    }));
+    const again = document.createElement('button');
+    again.type = 'button'; again.className = 'chip go'; again.textContent = '다시 보내기';
+    again.onclick = function () { chips.innerHTML = ''; finish(); };
+    chips.appendChild(again);
   }
+}
+
+/* ── 이벤트 ───────────────────────────── */
+document.querySelectorAll('.pick').forEach(function (btn) {
+  btn.onclick = function () {
+    g = btn.dataset.g;
+    document.body.dataset.persona = g;
+    $('intro').classList.add('hide');
+    $('hav').className = 'av ' + g;
+    $('hav').textContent = PERSONA[g].name;
+    $('hname').textContent = PERSONA[g].name;
+    setTimeout(function () { $('intro').style.display = 'none'; runStep(); }, 380);
+  };
+});
+
+sendBtn.onclick = sendTyped;
+
+input.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendTyped(); }
+});
+input.addEventListener('input', function () {
+  input.style.height = 'auto';
+  input.style.height = Math.min(110, input.scrollHeight) + 'px';
 });
 </script>
 </body>
