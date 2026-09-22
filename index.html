@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서비스 이용 만족도 설문</title>
+<style>
+  :root {
+    --bg: #f7f7f8;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --muted: #6b7280;
+    --line: #d9d9de;
+    --accent: #2563eb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17171a; --card: #202024; --text: #ececf0;
+      --muted: #9a9aa5; --line: #3a3a42; --accent: #5b8cff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 16px 64px;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                 "Pretendard", system-ui, sans-serif;
+    line-height: 1.6;
+  }
+  main { max-width: 560px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 8px; letter-spacing: -0.02em; }
+  .lead { color: var(--muted); margin: 0 0 28px; font-size: 15px; }
+  fieldset {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px; margin: 0 0 16px;
+  }
+  legend { font-weight: 600; font-size: 15px; padding: 0 6px; }
+  .hint { color: var(--muted); font-size: 13px; margin: 2px 0 12px; }
+  .opt { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; cursor: pointer; }
+  .opt input { margin: 5px 0 0; flex-shrink: 0; width: 17px; height: 17px; accent-color: var(--accent); }
+  select, textarea {
+    width: 100%; padding: 11px 12px; font-size: 16px; font-family: inherit;
+    color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px;
+  }
+  textarea { min-height: 96px; resize: vertical; }
+  select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .req { color: #dc2626; }
+  @media (prefers-color-scheme: dark) { .req { color: #f87171; } }
+  button {
+    width: 100%; padding: 15px; margin-top: 8px;
+    font-size: 16px; font-weight: 600; font-family: inherit;
+    color: #fff; background: var(--accent);
+    border: 0; border-radius: 10px; cursor: pointer;
+  }
+  button:hover:not(:disabled) { filter: brightness(1.08); }
+  button:disabled { background: var(--muted); cursor: not-allowed; }
+  #msg { margin-top: 16px; text-align: center; font-size: 15px; min-height: 24px; }
+  #msg.err { color: #dc2626; }
+  .done { background: var(--card); border: 1px solid var(--line);
+          border-radius: 12px; padding: 40px 20px; text-align: center; }
+  .done h2 { margin: 0 0 8px; font-size: 20px; }
+  .done p { margin: 0; color: var(--muted); }
+  .privacy { color: var(--muted); font-size: 13px; margin-top: 24px; text-align: center; }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+</style>
+</head>
+<body>
+<main>
+  <h1>서비스 이용 만족도 설문</h1>
+  <p class="lead">더 나은 서비스를 만들기 위한 설문입니다. 약 1분이면 완료되며, 응답은 통계 목적으로만 사용됩니다.</p>
+
+  <form id="survey" novalidate>
+
+    <!-- 봇이 자동으로 채우는 미끼 칸입니다. 사람 눈에는 보이지 않습니다. -->
+    <div class="hp" aria-hidden="true">
+      <label>홈페이지 <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+    </div>
+
+    <fieldset>
+      <legend>1. 연령대 <span class="req">*</span></legend>
+      <p class="hint">객관식 · 하나만 선택</p>
+      <select name="연령대" required>
+        <option value="">선택해 주세요</option>
+        <option>10대</option>
+        <option>20대</option>
+        <option>30대</option>
+        <option>40대</option>
+        <option>50대 이상</option>
+      </select>
+    </fieldset>
+
+    <fieldset>
+      <legend>2. 서비스를 어떻게 알게 되셨나요? <span class="req">*</span></legend>
+      <p class="hint">객관식 · 하나만 선택</p>
+      <label class="opt"><input type="radio" name="유입경로" value="지인 추천" required><span>지인 추천</span></label>
+      <label class="opt"><input type="radio" name="유입경로" value="검색 (구글, 네이버 등)"><span>검색 (구글, 네이버 등)</span></label>
+      <label class="opt"><input type="radio" name="유입경로" value="SNS"><span>SNS (인스타그램, 유튜브 등)</span></label>
+      <label class="opt"><input type="radio" name="유입경로" value="광고"><span>광고</span></label>
+      <label class="opt"><input type="radio" name="유입경로" value="기타"><span>기타</span></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>3. 전반적인 만족도는 어떠셨나요? <span class="req">*</span></legend>
+      <p class="hint">객관식 · 하나만 선택</p>
+      <label class="opt"><input type="radio" name="만족도" value="5 매우 만족" required><span>매우 만족</span></label>
+      <label class="opt"><input type="radio" name="만족도" value="4 만족"><span>만족</span></label>
+      <label class="opt"><input type="radio" name="만족도" value="3 보통"><span>보통</span></label>
+      <label class="opt"><input type="radio" name="만족도" value="2 불만족"><span>불만족</span></label>
+      <label class="opt"><input type="radio" name="만족도" value="1 매우 불만족"><span>매우 불만족</span></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>4. 유용하다고 느낀 점을 모두 골라 주세요</legend>
+      <p class="hint">객관식 · 복수 선택 가능</p>
+      <label class="opt"><input type="checkbox" name="유용한점" value="사용 편의성"><span>사용이 쉽고 편리함</span></label>
+      <label class="opt"><input type="checkbox" name="유용한점" value="속도"><span>빠른 속도</span></label>
+      <label class="opt"><input type="checkbox" name="유용한점" value="디자인"><span>보기 좋은 디자인</span></label>
+      <label class="opt"><input type="checkbox" name="유용한점" value="가격"><span>합리적인 가격</span></label>
+      <label class="opt"><input type="checkbox" name="유용한점" value="고객지원"><span>친절한 고객 지원</span></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>5. 다른 사람에게 추천하실 의향이 있나요? <span class="req">*</span></legend>
+      <p class="hint">객관식 · 하나만 선택</p>
+      <label class="opt"><input type="radio" name="추천의향" value="예" required><span>예, 추천하겠습니다</span></label>
+      <label class="opt"><input type="radio" name="추천의향" value="아니오"><span>아니오</span></label>
+      <label class="opt"><input type="radio" name="추천의향" value="잘 모르겠음"><span>잘 모르겠습니다</span></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>6. 가장 좋았던 점은 무엇인가요? <span class="req">*</span></legend>
+      <p class="hint">주관식 · 자유롭게 작성해 주세요</p>
+      <textarea name="좋았던점" required placeholder="예: 처음 써보는데도 헤매지 않고 바로 쓸 수 있었습니다."></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend>7. 개선되었으면 하는 점이 있다면 알려 주세요</legend>
+      <p class="hint">주관식 · 선택 항목입니다</p>
+      <textarea name="개선점" placeholder="불편했던 점이나 추가되었으면 하는 기능을 적어 주세요."></textarea>
+    </fieldset>
+
+    <button type="submit">제출하기</button>
+  </form>
+
+  <p id="msg" role="status" aria-live="polite"></p>
+  <p class="privacy">수집된 응답은 서비스 개선 목적으로만 사용하며, 이름·연락처 등 개인을 식별할 수 있는 정보는 수집하지 않습니다.</p>
+</main>
+
+<script>
+// ── 설정: 2단계에서 복사한 Apps Script 웹 앱 주소를 여기에 붙여넣으세요 ──
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyoY955vCmQSYgXuC2JgvWME4uSujfCapjPJFFwNZDsFtXEpRim_vQEdj_HYetex_-6Qw/exec';
+
+const form = document.getElementById('survey');
+const msg  = document.getElementById('msg');
+
+form.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+
+  // 필수 항목 검사 (브라우저 기본 검사를 직접 호출)
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+
+  if (ENDPOINT.startsWith('PASTE_')) {
+    msg.className = 'err';
+    msg.textContent = '아직 Apps Script 주소가 연결되지 않았습니다. index.html의 ENDPOINT를 수정하세요.';
+    return;
+  }
+
+  const btn = form.querySelector('button');
+  btn.disabled = true;
+  msg.className = '';
+  msg.textContent = '전송 중입니다...';
+
+  // 체크박스처럼 같은 이름이 여러 번 오는 항목은 쉼표로 합칩니다.
+  const data = {};
+  for (const [key, value] of new FormData(form).entries()) {
+    data[key] = (key in data) ? data[key] + ', ' + value : value;
+  }
+
+  try {
+    // Content-Type을 text/plain으로 보내야 브라우저의 사전 요청(OPTIONS) 없이
+    // Apps Script에 바로 도달합니다. 서버 쪽에서 JSON.parse로 읽습니다.
+    await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(data),
+    });
+
+    form.outerHTML =
+      '<div class="done"><h2>제출이 완료되었습니다</h2>' +
+      '<p>소중한 의견 감사합니다.</p></div>';
+    msg.textContent = '';
+  } catch (err) {
+    msg.className = 'err';
+    msg.textContent = '전송에 실패했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
