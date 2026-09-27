@@ -13,6 +13,12 @@ for(const label of ['이름','학교 · 전공','쉬는 날 하는 일','만나�
 run("returnToReview=true;step=4;questionIndex=2;answers.키='999'");await run('next()');assert.equal(run('step'),4);
 run("answers.키='170'");await run('next()');assert.equal(run('step'),9);assert.equal(run('returnToReview'),false);assert(elements.get('screen').innerHTML.includes('170cm'));
 console.log('PASS: 15 complete review bubbles, invalid edit blocked, valid edit returns to review.');
+for(const [st,ix,key,optional] of [[5,1,'음주',false],[5,2,'흡연',false],[5,3,'종교',true],[10,0,'연봉',true],[12,0,'유입경로',false]]){
+ run(`view='form';step=${st};questionIndex=${ix};answers['${key}']='';returnToReview=false`);
+ await run('next()');assert.equal(run('step'),st);assert.equal(run('questionIndex'),ix);
+ if(optional){await run('next(true)');assert(run('step')!==st||run('questionIndex')!==ix);}
+}
+console.log('PASS: all five empty choice questions blocked; explicit optional skip allowed.');
 ctx.fetch=async()=>({ok:true,json:async()=>({ok:true})});await assert.rejects(run("request({})"),/지원하지/);ctx.fetch=async()=>({ok:false});await assert.rejects(run('request({})'),/연결하지/);
 console.log('PASS: 28 step/persona renders; validation; summary preservation; independent gender/persona; demo submit; 3 review states; HTML escaping; legacy response and network failure handling.');
 new vm.Script(fs.readFileSync(require('path').join(__dirname,'../server/Code.gs'),'utf8'));console.log('PASS: Apps Script syntax');

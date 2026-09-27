@@ -9,3 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH RE
 Pretendard Variable v1.3.9
 https://github.com/orioncactus/pretendard/tree/v1.3.9
 SIL Open Font License 1.1: see assets/fonts/OFL.txt
+
+Active font: NanumSquareRound, served from NAVER official webfont CDN.
+https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css

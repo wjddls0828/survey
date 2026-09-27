@@ -10,6 +10,10 @@ const answers = {연령대:'',유입경로:'',만족도:'',유용한점:'',추�
 let step=0, persona='f', photos=[], busy=false, submitted=false, view='form', status='pending', editing=false;
 let questionIndex=0;
 let returnToReview=false;
+let introSlide=0;
+let profilePersona='f';
+const HOSTS={f:{name:'다민',role:'촉 좋은 인싸 언니',job:'고려대 · IT기업',experience:'소개팅/미팅 주선 100회+',detail:'친구 연애상담 단골',quote:'일단 얘기해봐. 내가 감 좀 잡아볼게 👀'},m:{name:'정진',role:'발 넓은 마당발 형',job:'고려대 · 직장인',experience:'각종 모임 100회+',detail:'친구의 친구까지 넓은 인맥',quote:'어떤 사람 찾는데? 아는 사람 중에 생각해볼게.'}};
+function startChat(id){persona=id;answers.주선자=id;view='form';step=3;questionIndex=0;history.length=0;render();topScreen();}
 const history=[];
 let lastPrompt="";
 let receipt=null;
@@ -43,18 +47,23 @@ function error(message){$('error').textContent=message;}
 function render(){
  const oldScroll=$('screen').scrollTop;
  document.body.dataset.persona=persona;
- document.body.dataset.screen=view==='form'?(step<2?'intro':step===2?'list':'chat'):'result';
+ document.body.dataset.screen=view==='form'?(step<2?'intro':step===2?'list':'chat'):view==='host'?'host':'result';
  $('brand').innerHTML=step>=3&&view==='form'?'<button id=chatBack class=icon-button aria-label=대화목록으로>‹</button><span class=header-avatar>'+name().slice(0,1)+'</span><span>'+name()+'<small>편하게 얘기해줘</small></span>':'친친소<span class=spark>✳</span>'; 
  $('headerNote').textContent=step>2?`${name()}에게 맡기는 내 인연`:'친구의 친구, 그 너머의 인연';
  $('progress').style.width=(view==='form'?step/13*100:100)+'%';
  let html=demo?'<div class="demo">체험 모드 · 서버에 전송되지 않아요</div>':'';
  if(view==='form'){
- html+=step<3?`<div class="eyebrow">${step===2?'02 / CHOOSE YOUR PERSON':'01 / A LITTLE HELLO'}</div>`:'<div class="chat-date">자동 질문으로 얘기를 모으고, 선택한 운영자가 직접 확인해요.</div>'+transcript()+'<div id=activeTurn class=active-turn>'; 
- if(step<2)html+=`<div class="hero"><span class="welcome-label">친구의 소개를, 더 넓고 잘 맞게</span><h1>좋은 인연의 시작,<br>일단 얘기해볼래요?</h1><p class="muted">친한 주선자에게 얘기하듯 알려주세요.<br>운영자가 취향과 피하고 싶은 조건을 참고해<br>6~8명이 자연스럽게 만나는 작은 자리를 만들어요.</p><div class="intro-chat"><div class="mini-incoming"><span class="mini-face">다</span><span>어떤 사람과 있으면 편해?</span></div><div class="mini-outgoing">나랑 대화가 잘 통하는 사람!</div><div class="mini-incoming"><span class="mini-face">다</span><span>좋아. 잘 맞을 자리를 생각해볼게.</span></div></div><p class="intro-promise"><strong>잘 맞을 것 같은 자리가 생기면 먼저 초대할게요.</strong><br>초대받은 뒤, 참석할지 정하면 돼요 :)</p>`+choices('성별','먼저, 성별을 알려주세요',['여성','남성'])+'<small class="intro-footnote">내 정보와 사진은 동의 없이 공개되지 않아요.</small></div>';
- else {html+=step===2?`<h1 class="list-title">대화 <span>2</span></h1>`:``;
+ html+=step===2?'':step<3?`<div class="eyebrow">${step===2?'02 / CHOOSE YOUR PERSON':'01 / A LITTLE HELLO'}</div>`:'<div class="chat-date">자동 질문으로 얘기를 모으고, 선택한 운영자가 직접 확인해요.</div>'+transcript()+'<div id=activeTurn class=active-turn>';
+ if(step<2){html=`<section class="onboarding" aria-label="친친소 서비스 소개"><div class="onboard-brand">친친소<span>친구의 친구, 우리 사이</span></div><div class="onboard-art" aria-hidden="true"><img src="assets/onboarding-tiger.png?v=2" alt="" width="3762" height="3762"></div><div id="introSlides" class="intro-slides" tabindex="0" aria-label="서비스 소개, 좌우로 넘겨보세요">`+[
+ ['친구의 소개를,<br>더 넓고 잘 맞게.','친한 주선자에게 얘기하듯 알려주세요.<br>취향도, 피하고 싶은 조건도 편하게.'],
+ ['내 이야기는 편하게,<br>내 정보는 조심스럽게.','등록만으로 사진이 공개되지 않아요.<br>누구에게 보여줄지 먼저 물어볼게요.'],
+ ['잘 맞을 작은 자리,<br>초대받고 결정해요.','운영자가 6~8명의 조합을 생각해요.<br>맞는 자리가 생기면 먼저 연락할게요.']
+ ].map(([title,body],i)=>'<article class="intro-slide" aria-label="'+(i+1)+' / 3"><h1>'+title+'</h1><p>'+body+'</p></article>').join('')+'</div><div class="slide-controls"><button id="slidePrev" class="slide-arrow" aria-label="이전 소개">‹</button><div class="slide-dots">'+[0,1,2].map(i=>'<button class="slide-dot" data-slide="'+i+'" aria-label="소개 '+(i+1)+' 보기" aria-current="'+(i===introSlide)+'"><span></span></button>').join('')+'</div><button id="slideNext" class="slide-arrow" aria-label="다음 소개">›</button></div></section>';}
+
+ else {
  switch(step){
  case 1:html+=choices('성별','성별이 어떻게 돼요?',['여성','남성']);break;
- case 2:html+='<p class="list-lead">누구에게 내 얘기를 맡겨볼까요?<br><span>더 편하게 느껴지는 사람을 골라주세요.</span></p><div class="list-label">나의 소개를 부탁할 사람</div>'+[['f','다민','촉 좋은 인싸 언니','고려대 · IT기업','소개팅/미팅 주선 100회+ · 친구 연애상담 단골','일단 얘기해봐. 내가 감 좀 잡아볼게 👀'],['m','정진','발 넓은 마당발 형','고려대 · 직장인','각종 모임 100회+ · 친구의 친구까지 넓은 인맥','어떤 사람 찾는데? 아는 사람 중에 생각해볼게.']].map(([id,n,t,job,bio,quote])=>`<button class="contact-row" data-persona="${id}" aria-label="${n}과 대화하기"><span class="contact-avatar ${id}">${n.slice(0,1)}</span><span class="contact-content"><span class="contact-top"><strong>${n}</strong></span><span class="contact-role">${t}</span><span class="contact-preview">${quote}</span><span class="contact-meta">${job}<br>${bio}</span></span></button>`).join('')+'<div class="list-bottom"><span>♡</span><p>누굴 골라도, 내 속도대로.<br><small>사진과 프로필은 먼저 물어보고 보여줄게요.</small></p></div>';break;
+ case 2:html+='<aside class="conversation-banner" aria-label="편하게 들려주세요"><div class="banner-copy"><strong>소개받고 싶은 사람,<br>편하게 얘기해봐요.</strong><p>취향도, 피하고 싶은 조건도요.</p></div><svg class="banner-art" viewBox="0 0 96 80" fill="none" aria-hidden="true"><path d="M5 29C5 14 17 6 33 6s28 8 28 23-12 23-28 23H21L9 61l2-20a23 23 0 0 1-6-12Z" fill="var(--incoming)"/><path d="M38 48c0-14 11-23 26-23s27 9 27 23-12 23-27 23H54l-11 7 1-16c-4-4-6-9-6-14Z" fill="var(--outgoing)"/><circle cx="24" cy="28" r="2" fill="var(--ink)"/><circle cx="40" cy="28" r="2" fill="var(--ink)"/><path d="M27 36q5 5 10 0" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><circle cx="54" cy="48" r="2" fill="var(--ink)"/><circle cx="64" cy="48" r="2" fill="var(--ink)"/><circle cx="74" cy="48" r="2" fill="var(--ink)"/></svg></aside><div class="contacts">'+Object.entries(HOSTS).map(([id,h])=>`<div class="contact-row"><button class="contact-avatar ${id}" data-host="${id}" aria-label="${h.name} 프로필 보기">${h.name.slice(0,1)}</button><button class="contact-content" data-persona="${id}" aria-label="${h.name}과 대화하기"><span class="contact-copy"><strong>${h.name}</strong><span class="contact-status" title="${h.job} · ${h.experience}">${h.job} · ${h.experience}</span></span><svg class="contact-chat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg></button></div>`).join('')+'</div>';break;
  case 3:html+=bubble(copy('오 반가워!\n당장 누구 소개해주겠다는 건 아니니까 부담 갖지 말고ㅋㅋ\n\n너 어떤 사람인지랑 어떤 사람 좋아하는지만 좀 알아둘게.\n잘 맞을 작은 자리가 생기면 먼저 초대할게 👀\n\n일단 쉬운 것부터!','오 반가워 👋\n당장 누구 만나라는 건 아니고 네 얘기 좀 들어두려고.\n\n네 취향이랑 피하고 싶은 조건까지 참고해서 작은 자리를 생각해볼게. 맞는 자리가 생기면 먼저 초대할게.\n\n일단 기본적인 것부터 가보자.'));break;
  case 4:html+=questionUI();break;
  case 5:html+=questionUI();break;
@@ -67,6 +76,9 @@ function render(){
  case 12:html+=questionUI();break;
  case 13:html+=bubble(copy('네가 여기서 말한 내용이 아무한테나 공개되진 않아.\n잘 맞을 것 같은 사람이 생기면 너한테 먼저 얘기할게.\n사진이나 회사, 학교 같은 걸 보여줄 때도 어디까지 보여줄지 먼저 확인하고!','등록했다고 네 프로필이 다른 사람들한테 돌아다니는 구조 아니야.\n괜찮은 사람이 있으면 너한테 먼저 물어볼게.\n네가 괜찮다고 한 정보만 보여줄 거고.'))+'<div class="privacy"><strong>내 정보 공개는, 내가 정해요.</strong>이 동의는 신청 검토와 매칭 연락을 위한 수집·이용 동의예요. 상대방에게 사진과 프로필을 공개하는 동의는 별도로 받을게요.</div><details><summary>수집·이용 내용 보기</summary><p>목적: 신청 검토, 소개 가능 여부 확인 및 매칭 연락\n항목: 이름, 성별, 출생연도, 키, 생활권, 직업, 학교, 취미, 생활습관, 선호조건, 사진, 연락처, 유입경로 및 선택 입력 항목\n선택 항목은 입력하지 않아도 신청할 수 있어요. 동의를 거부할 수 있으며, 필수정보 수집에 동의하지 않으면 신청할 수 없어요.</p><p>'+(PRIVACY.operator&&PRIVACY.retention&&PRIVACY.contact?esc('처리자: '+PRIVACY.operator+' / 보유기간: '+PRIVACY.retention+' / 삭제 요청: '+PRIVACY.contact):'개인정보 처리방침을 준비하고 있어요. 현재는 체험 모드만 이용할 수 있어요.')+'</p></details><label class="consent"><input id="consent" type="checkbox" '+(answers.개인정보동의?'checked':'')+'>개인정보 수집·이용에 동의해요</label>';break;
  }}
+ }else if(view==='host'){
+ const h=HOSTS[profilePersona];
+ html+='<section class="host-profile" aria-label="'+h.name+' 소개"><div class="host-avatar '+profilePersona+'" aria-hidden="true">'+h.name.slice(0,1)+'</div><h1>'+h.name+'</h1><p class="host-role">'+h.role+'</p><div class="host-quote">'+h.quote+'</div><div class="host-facts"><p>'+h.job+'</p><p>'+h.experience+'</p><p>'+h.detail+'</p></div><p class="host-note">자동 질문으로 편하게 이야기해주세요.<br>남겨준 이야기는 '+h.name+'이 직접 확인해요.</p></section>';
  }else if(view==='profile'){
  html+='<h2>내가 얘기한 내용</h2>'+summary(Object.entries(answers).filter(([k,v])=>v&&!['주선자','개인정보동의'].includes(k)).map(([k])=>[k,k]));
  }else{
@@ -80,8 +92,10 @@ function render(){
  html+='<p id="error" class="error" role="alert"></p>';
  $('screen').innerHTML=html;
  $('nav').innerHTML=view==='form'?`${step?'<button class="secondary" id="back">이전</button>':''}<button class="primary" id="next">${busy?'처리 중…':step===0?'얘기해볼게요 ↗':step===9?'응 딱 맞아':step===13?(editing?'수정 내용 저장':'내 얘기 맡겨두기'):step===10?'다음 · 넘어가도 괜찮아':'다음 →'}</button>`:view==='profile'?'<button class="secondary" id="return">돌아가기</button><button class="primary" id="edit">수정하기</button>':`<button class="secondary" id="profile">내 정보 보기</button><button class="primary" id="status">${view==='complete'?'확인 상태 보기':'상태 새로고침'}</button>`;
- if(view==='form'&&step===2)$('nav').innerHTML='<button class="textbtn" id="back">‹ 소개로 돌아가기</button><span class="list-nav-active">◉ 대화</span>';
+ if(view==='form'&&step===2){$('brand').innerHTML='<button class="icon-button" id="back" aria-label="소개로 돌아가기">‹</button><span>대화 <small class="contact-count">2</small></span>';$('headerNote').textContent='';$('nav').innerHTML='';}
  if(view==='form'&&step>=3&&step<=12){$('next').textContent=step===3?'좋아, 시작하자 →':step===9?'응 딱 맞아 →':currentQuestion()?.[4]?'보내기 / 건너뛰기 ↑':'보내기 ↑';}
+ if(view==='form'&&step<2)$('nav').innerHTML='<div class="start-panel"><p>이제, 얘기 시작할래요?</p><div class="start-genders"><button data-start="여성" class="start-gender female">여자</button><button data-start="남성" class="start-gender male">남자</button></div><small>성별을 선택하면 대화 상대를 고를 수 있어요.</small></div>';
+ if(view==='host'){$('brand').innerHTML='<button id="hostBack" class="icon-button" aria-label="친구 목록으로">‹</button><span>프로필</span>';$('headerNote').textContent='';$('nav').innerHTML='<button class="primary" data-persona="'+profilePersona+'">'+HOSTS[profilePersona].name+'과 대화하기</button>';}
  mountComposer();
  bind();
  $('screen').scrollTop=oldScroll;
@@ -109,6 +123,9 @@ function mountComposer(){
   else entry.placeholder=currentQuestion()?.[2]||'메시지를 입력하세요';
   $('composer').appendChild(entry);fields[0].remove();
   nextButton.textContent='➤';nextButton.className='send-message';nextButton.setAttribute('aria-label','메시지 보내기');
+ }else if(options){
+  const entry=document.createElement('input');entry.className='chat-entry';entry.id='choiceEntry';entry.type='text';entry.readOnly=true;entry.value=answers[currentQuestion()[0]]||'';entry.placeholder='답변을 골라주세요';entry.setAttribute('aria-label','선택한 답변');
+  $('composer').appendChild(entry);nextButton.textContent='➤';nextButton.className='send-message';nextButton.setAttribute('aria-label','메시지 보내기');
  }else{
   const caption=document.createElement('span');caption.className='composer-caption';caption.textContent=options?'위에서 답변을 골라주세요':step===11?'사진을 보내주세요':step===13?'동의하고 내 얘기 맡기기':step===9?'내 얘기를 확인해주세요':'편하게 시작해볼까요?';
   $('composer').appendChild(caption);
@@ -120,23 +137,33 @@ function mountComposer(){
   const add=document.createElement('button');add.className='attach-button';add.type='button';add.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-4.586-4.586a2 2 0 0 0-2.828 0L3 21"/></svg>';add.setAttribute('aria-label','앨범에서 사진 선택');add.title='앨범에서 사진 선택';add.onclick=()=>{if(!busy)$('photoInput').click();};$('composer').appendChild(add);
   nextButton.textContent='➤';nextButton.className='send-message';nextButton.setAttribute('aria-label','선택한 사진 보내기');
   $('composer').appendChild(nextButton);
- }else if(plain){$('composer').appendChild(nextButton);}
+ }else if(plain||options){$('composer').appendChild(nextButton);}
  else{
   $('composer').hidden=true;
   nextButton.textContent=step===3?'대화 시작하기':step===9?'전부 확인했어':step===13?(editing?'수정 내용 저장하기':'동의하고 등록하기'):'선택 확인하기';nextButton.className='action-confirm';nextButton.setAttribute('aria-label',nextButton.textContent);$('actionPanel').appendChild(nextButton);
  }
  backButton.textContent='이전 답변 수정';backButton.className='previous-answer';$('composerMeta').appendChild(backButton);
- if(currentQuestion()?.[4]){const skip=document.createElement('button');skip.id='skipReply';skip.className='skip-reply';skip.textContent='건너뛰기';skip.onclick=()=>{answers[currentQuestion()[0]]='';next();};$('composerMeta').appendChild(skip);}
+ if(currentQuestion()?.[4]){const skip=document.createElement('button');skip.id='skipReply';skip.className='skip-reply';skip.textContent='건너뛰기';skip.onclick=()=>{answers[currentQuestion()[0]]='';next(true);};$('composerMeta').appendChild(skip);}
  const entry=$('composer').querySelector('input,textarea');
  if(entry){const resize=()=>{if(entry.tagName==='TEXTAREA'){entry.style.height='auto';entry.style.height=Math.min(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--entry-max')),entry.scrollHeight)+'px';}nextButton.disabled=busy||!entry.value.trim();};entry.addEventListener('input',resize);resize();}
 }
 
+function showIntroSlide(index){introSlide=Math.max(0,Math.min(2,index));const track=$('introSlides');if(track?.scrollTo)track.scrollTo({left:track.clientWidth*introSlide,behavior:'smooth'});updateIntroDots();}
+function updateIntroDots(){document.querySelectorAll('[data-slide]').forEach(el=>el.setAttribute('aria-current',String(Number(el.dataset.slide)===introSlide)));}
 function bind(){
+ document.querySelectorAll('[data-start]').forEach(el=>el.onclick=()=>{answers.성별=el.dataset.start;if(returnToReview){returnToReview=false;step=9;}else step=2;questionIndex=0;render();topScreen();});
+ document.querySelectorAll('[data-slide]').forEach(el=>el.onclick=()=>showIntroSlide(Number(el.dataset.slide)));
+ const track=$('introSlides');if(track?.addEventListener){track.scrollLeft=track.clientWidth*introSlide;track.addEventListener('scroll',()=>{if(track.clientWidth){introSlide=Math.round(track.scrollLeft/track.clientWidth);updateIntroDots();}});track.onkeydown=e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();showIntroSlide(introSlide+(e.key==='ArrowRight'?1:-1));}};}
+ if($('slidePrev'))$('slidePrev').onclick=()=>showIntroSlide(introSlide-1);
+ if($('slideNext'))$('slideNext').onclick=()=>showIntroSlide(introSlide+1);
+
  if($('chatInfo'))$('chatInfo').onclick=()=>{const notice=$('chatNotice');if(notice){notice.remove();return;}const el=document.createElement('div');el.id='chatNotice';el.className='chat-notice';el.textContent='지금은 자동 질문으로 이야기를 모으는 중이에요. 등록 후 선택한 운영자가 직접 확인해요. 사진과 프로필은 공개 범위를 먼저 확인한 뒤에만 다른 참여자에게 보여줘요.';$('screen').prepend(el);$('screen').scrollTop=0;};
  if($('chatBack'))$('chatBack').onclick=()=>{if(busy)return;step=2;questionIndex=0;render();topScreen();};
  document.querySelectorAll('input[data-key],textarea[data-key]').forEach(el=>{el.oninput=()=>{answers[el.dataset.key]=el.value;};el.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing&&(el.tagName==='INPUT'||e.ctrlKey||e.metaKey)){e.preventDefault();next();}};});
- document.querySelectorAll('button[data-value]').forEach(el=>el.onclick=()=>{const k=el.dataset.key;answers[k]=el.dataset.value;if(k==='_demoStatus'){status=el.dataset.value;render();return;}el.closest('fieldset').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===el));});
- document.querySelectorAll('[data-persona]').forEach(el=>{if(el.tagName==='BUTTON')el.onclick=()=>{persona=el.dataset.persona;answers.주선자=persona;step=3;questionIndex=0;history.length=0;render();topScreen();};});
+ document.querySelectorAll('button[data-value]').forEach(el=>el.onclick=()=>{if(busy)return;const k=el.dataset.key;answers[k]=el.dataset.value;if(k==='_demoStatus'){status=el.dataset.value;render();return;}el.closest('fieldset').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===el));if($('choiceEntry')){$('choiceEntry').value=el.dataset.value;next();}});
+ document.querySelectorAll('[data-persona]').forEach(el=>{if(el.tagName==='BUTTON')el.onclick=()=>startChat(el.dataset.persona);});
+ document.querySelectorAll('[data-host]').forEach(el=>el.onclick=()=>{profilePersona=el.dataset.host;view='host';render();topScreen();});
+ if($('hostBack'))$('hostBack').onclick=()=>{view='form';step=2;render();topScreen();};
  document.querySelectorAll('[data-remove]').forEach(el=>el.onclick=()=>{photos.splice(Number(el.dataset.remove),1);render();});
  if($('next')){const entry=$('composer')?.querySelector?.('.chat-entry');$('next').disabled=busy||!!(entry&&!entry.value.trim());$('next').onclick=next;}
  if($('back')){$('back').disabled=busy;$('back').onclick=previous;}
@@ -156,7 +183,7 @@ function legacyValidate(){const required={1:['성별'],2:['주선자'],4:['이�
  if(step===12&&!/^01[016789]\d{7,8}$/.test(answers.연락처.replace(/[-\s]/g,'')))return '연락받을 휴대폰 번호를 확인해줘.';
  if(step===13&&!answers.개인정보동의)return '개인정보 수집·이용에 동의해야 신청할 수 있어.';return '';}
 function validate(){if(step<2)return answers.성별?'':'성별을 선택해주세요.';const q=currentQuestion();if(!q)return legacyValidate();const [key,,,type,optional]=q;const value=String(answers[key]||'').trim();if(!optional&&!value)return '답변을 입력하거나 골라줘.';if(key==='출생연도'&&(!/^\d{4}$/.test(value)||+value<1900||+value>new Date().getFullYear()-19))return '출생연도 4자리를 확인해줘. 출생연도 기준 19세 이상만 신청할 수 있어.';if(key==='키'&&(+value<100||+value>250))return '키는 100~250cm 사이로 입력해줘.';if(key==='MBTI'&&value&&!/^[IE][NS][FT][JP]$/i.test(value))return 'MBTI 네 글자를 확인해줘.';if(key==='연락처'&&!/^01[016789]\d{7,8}$/.test(value.replace(/[-\s]/g,'')))return '휴대폰 번호를 확인해줘.';return '';}
-async function next(){if(busy)return;const msg=validate();if(msg){error(msg);return;}if(returnToReview){returnToReview=false;step=9;questionIndex=0;render();topScreen();return;}if(step<2){step=2;questionIndex=0;}else if(step===13){await submit();return;}else{if(step>=3)remember();if(QUESTIONS[step]&&questionIndex<QUESTIONS[step].length-1)questionIndex++;else{step++;questionIndex=0;}}render();topScreen();}
+async function next(allowSkip=false){if(busy)return;const choice=currentQuestion();if(Array.isArray(choice?.[2])&&!answers[choice[0]]&&!(allowSkip===true&&choice[4])){error('답변을 골라줘.');return;}const msg=validate();if(msg){error(msg);return;}if(returnToReview){returnToReview=false;step=9;questionIndex=0;render();topScreen();return;}if(step<2){step=2;questionIndex=0;}else if(step===13){await submit();return;}else{if(step>=3)remember();if(QUESTIONS[step]&&questionIndex<QUESTIONS[step].length-1)questionIndex++;else{step++;questionIndex=0;}}render();topScreen();}
 async function selectPhotos(e){const files=[...e.target.files];if(files.length+photos.length>5){error('사진은 최대 5장까지 올릴 수 있어.');e.target.value='';return;}busy=true;$('next').disabled=true;$('back').disabled=true;try{const incoming=[];for(const file of files){if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024)throw Error('JPG, PNG, WebP 형식의 5MB 이하 사진을 선택해줘.');const data=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(Error('사진을 읽지 못했어. 다시 골라줘.'));r.readAsDataURL(file);});await new Promise((resolve,reject)=>{const img=new Image();img.onload=resolve;img.onerror=()=>reject(Error('열 수 없는 사진이야. 다른 파일을 골라줘.'));img.src=data;});incoming.push({name:file.name,type:file.type,data});}photos.push(...incoming);}catch(err){error(err.message);busy=false;$('next').disabled=false;$('back').disabled=false;return;}busy=false;render();}
 async function request(payload){const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),60000);try{const response=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload),signal:controller.signal});if(!response.ok)throw Error('서버에 연결하지 못했어. 잠시 후 다시 눌러줘.');let result;try{result=await response.json();}catch{throw Error('서버의 저장 확인을 받지 못했어. 운영자의 새 신청 양식 연동이 필요해.');}if(result.schemaVersion!==2||!result.ok)throw Error(result.error||'서버가 새 신청 양식을 지원하지 않아. 운영자에게 확인해줘.');return result;}finally{clearTimeout(timeout);}}
 let submissionId=crypto.randomUUID();
