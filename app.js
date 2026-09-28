@@ -2,7 +2,7 @@
 // Keep the original Apps Script endpoint and flat Korean-key JSON transport.
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyoY955vCmQSYgXuC2JgvWME4uSujfCapjPJFFwNZDsFtXEpRim_vQEdj_HYetex_-6Qw/exec';
 // Fill with the operator's published privacy policy before accepting real applications.
-const PRIVACY = {operator:'', retention:'', contact:''};
+const PRIVACY = {operator:'친친소', retention:'1년', contact:'dhrehd1234@naver.com'};
 const demo = new URLSearchParams(location.search).get('demo') === '1';
 const $ = id => document.getElementById(id);
 const esc = v => String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
