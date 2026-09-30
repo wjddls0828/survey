@@ -144,7 +144,8 @@ function mountComposer(){
   nextButton.textContent=step===3?'대화 시작하기':step===9?'전부 확인했어':step===13?(editing?'수정 내용 저장하기':'동의하고 등록하기'):'선택 확인하기';nextButton.className='action-confirm';nextButton.setAttribute('aria-label',nextButton.textContent);$('actionPanel').appendChild(nextButton);
  }
  backButton.textContent='이전 답변 수정';backButton.className='previous-answer';$('composerMeta').appendChild(backButton);
- if(currentQuestion()?.[4]){const skip=document.createElement('button');skip.id='skipReply';skip.className='skip-reply';skip.textContent='건너뛰기';skip.onclick=()=>{answers[currentQuestion()[0]]='';next(true);};$('composerMeta').appendChild(skip);}
+ // C-11: optional questions get one explicit skip chip, always right above the composer for both choice and typed replies.
+ if(currentQuestion()?.[4]){const row=document.createElement('div');row.className='skip-row';const skip=document.createElement('button');skip.id='skipReply';skip.type='button';skip.className='chip skip-reply';skip.textContent='이건 넘어갈게';skip.setAttribute('aria-label','이 질문은 건너뛰기');skip.onclick=()=>{if(busy)return;answers[currentQuestion()[0]]='';next(true);};row.appendChild(skip);$('replyTools').appendChild(row);}
  const entry=$('composer').querySelector('input,textarea');
  if(entry){const resize=()=>{if(entry.tagName==='TEXTAREA'){entry.style.height='auto';entry.style.height=Math.min(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--entry-max')),entry.scrollHeight)+'px';}nextButton.disabled=busy||!entry.value.trim();};entry.addEventListener('input',resize);resize();}
 }
