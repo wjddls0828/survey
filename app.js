@@ -6,17 +6,28 @@ const PRIVACY = {operator:'친친소', retention:'1년', contact:'dhrehd1234@nav
 const demo = new URLSearchParams(location.search).get('demo') === '1';
 const $ = id => document.getElementById(id);
 const esc = v => String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const answers = {연령대:'',유입경로:'',만족도:'',유용한점:'',추천의향:'',좋았던점:'',개선점:'',성별:''};
+const BLANK={연령대:'',유입경로:'',만족도:'',유용한점:'',추천의향:'',좋았던점:'',개선점:'',성별:''};
+const base={...BLANK};   // shared pre-chat answers (성별)
+let answers=base;        // inside a chat this points at that host's own answer set
 let step=0, persona='f', photos=[], busy=false, submitted=false, view='form', status='pending', editing=false;
 let questionIndex=0;
 let returnToReview=false;
 let introSlide=0;
 let profilePersona='f';
 const HOSTS={f:{name:'다민',role:'촉 좋은 인싸 언니',job:'고려대 · IT기업',experience:'소개팅·미팅 주선 100회+',detail:'친구들 연애 상담 단골',quote:'일단 얘기해봐. 내가 감 좀 잡아볼게 👀'},m:{name:'정진',role:'발 넓은 마당발 형',job:'고려대 · 직장인',experience:'각종 모임 100회+',detail:'친구의 친구까지 넓은 인맥',quote:'어떤 사람 찾는데? 아는 사람 중에 생각해볼게.'}};
-// #14: one conversation state per host. Re-selecting a host resumes that chat (bubbles + position); the post-submit edit flow still restarts.
-const sessions={};
+// #14/#15: one conversation per host — bubbles, position, answers and photos — kept side by side until the final submit.
+// Text state also survives a reload via sessionStorage; photos stay in memory and are asked for again after a reload.
+const SESSION_KEY='chinchinso-sessions'+(demo?'-demo':'');
+let sessions={};
 let history=[];
-function startChat(id){if(busy)return;persona=id;answers.주선자=id;const saved=!editing&&sessions[id];if(saved){history=saved.history;step=saved.step;questionIndex=saved.questionIndex;}else{history=[];step=3;questionIndex=0;}view='form';render();topScreen();}
+function locked(){return submitted&&!editing;}
+function freshSession(id){return {history:[],step:3,questionIndex:0,answers:{...BLANK,주선자:id},photos:[]};}
+// A chat interrupted mid review-edit resumes at the review; one that lost its photos (reload) resumes at the photo step.
+function normalize(s){if(s.history.some(h=>h.step>s.step||(h.step===s.step&&h.index>=s.questionIndex))){s.step=9;s.questionIndex=0;}if(s.step>11&&!s.photos.length){s.step=11;s.questionIndex=0;s.history=s.history.filter(h=>h.step<11);}return s;}
+function startChat(id){if(busy||locked())return;persona=id;returnToReview=false;if(editing){answers.주선자=id;history=[];step=3;questionIndex=0;view='form';render();topScreen();return;}const s=normalize(sessions[id]||(sessions[id]=freshSession(id)));s.answers.성별=base.성별;s.answers.주선자=id;({history,step,questionIndex,answers,photos}=s);view='form';render();topScreen();}
+function persist(){try{sessionStorage.setItem(SESSION_KEY,JSON.stringify({성별:base.성별,sessions:Object.fromEntries(Object.entries(sessions).map(([id,s])=>[id,{history:s.history,step:s.step,questionIndex:s.questionIndex,answers:s.answers}]))}));}catch{}}
+function forgetSessions(){sessions={};try{sessionStorage.removeItem(SESSION_KEY);}catch{}}
+function restoreSessions(){try{const saved=JSON.parse(sessionStorage.getItem(SESSION_KEY));if(!saved||!saved.sessions)return;base.성별=saved.성별||'';for(const [id,s] of Object.entries(saved.sessions)){if(!HOSTS[id]||!s)continue;sessions[id]=normalize({history:Array.isArray(s.history)?s.history:[],step:Number(s.step)||3,questionIndex:Number(s.questionIndex)||0,answers:{...BLANK,...(s.answers||{}),주선자:id},photos:[]});}if(Object.keys(sessions).length&&base.성별)step=2;}catch{}}
 let lastPrompt="";
 let receipt=null;
 try{receipt=JSON.parse(sessionStorage.getItem('chinchinso-receipt'));if(receipt&&!demo){submitted=true;view='status';}}catch{}
@@ -33,10 +44,13 @@ const QUESTIONS={
 // D-03: the chat opens with a plain date stamp; the automated-question role lives in the ⓘ notice and the host profile.
 function chatDate(){const d=new Date();return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일';}
 function currentQuestion(){return QUESTIONS[step]?.[questionIndex];}
+const TURNS=[3,4,5,6,7,8,9,10,11,12,13].reduce((n,s)=>n+(QUESTIONS[s]?.length||1),0);
+function turnsDone(s){let n=0;for(let t=3;t<s.step;t++)n+=QUESTIONS[t]?.length||1;return Math.min(TURNS,n+s.questionIndex);}
+function contactStatus(id,h){const s=sessions[id];const done=s?turnsDone(s):0;return done?`진행 중 · ${done}/${TURNS}`:`${h.job} · ${h.experience}`;}
 function questionUI(){const [key,label,placeholder,type='text',optional=false]=currentQuestion();const context=step===10&&questionIndex===0?bubble(copy('조금 현실적인 것도 물어볼게. 불편하면 넘어가도 돼.\n\n상대에게 공개하진 않고 자리 짤 때만 참고할게.','현실적인 조건도 좀 참고하려고. 싫으면 넘어가도 돼.\n\n상대에게 그대로 공개하진 않아.')):'';return context+bubble(label)+(Array.isArray(placeholder)?choices(key,label,placeholder,optional):field(key,label,placeholder,type,optional));}
 function remember(){const q=currentQuestion();const keys=q?[q[0]]:({6:['이상형'],7:['제외조건'],8:['중요조건'],9:['제외조건','중요조건','이상형']}[step]||[]);history.push({step,index:questionIndex,prompt:q?q[1]:lastPrompt||stages[step],keys,reply:step===3?'좋아, 얘기해볼게!':step===11?'사진 '+photos.length+'장 선택했어':step===9?'응, 이렇게 기억해줘.':''});}
 function transcript(){return history.map(h=>'<div class="past-turn">'+bubble(h.prompt)+'<div class="outgoing">'+esc(h.reply||h.keys.map(k=>answers[k]||'이건 넘어갈게').join(' · '))+'</div></div>').join('');}
-function previous(){if(busy)return;if(returnToReview){returnToReview=false;step=9;questionIndex=0;render();topScreen();return;}if(QUESTIONS[step]&&questionIndex>0)questionIndex--;else{step=step===2?0:Math.max(0,step-1);questionIndex=QUESTIONS[step]?QUESTIONS[step].length-1:0;}while(history.length&&(history.at(-1).step>step||(history.at(-1).step===step&&history.at(-1).index>=questionIndex)))history.pop();render();topScreen();}
+function previous(){if(busy||locked())return;if(returnToReview){returnToReview=false;step=9;questionIndex=0;render();topScreen();return;}if(QUESTIONS[step]&&questionIndex>0)questionIndex--;else{step=step===2?0:Math.max(0,step-1);questionIndex=QUESTIONS[step]?QUESTIONS[step].length-1:0;}while(history.length&&(history.at(-1).step>step||(history.at(-1).step===step&&history.at(-1).index>=questionIndex)))history.pop();render();topScreen();}
 
 function field(key,label,placeholder='',type='text',optional=false){return `<label class="field"><span>${label} ${optional?'<small>선택</small>':''}</span>${type==='textarea'?`<textarea aria-label="${esc(label)}" data-key="${key}" enterkeyhint="send" placeholder="${esc(placeholder)}" maxlength="2000">${esc(answers[key])}</textarea>`:`<input aria-label="${esc(label)}" data-key="${key}" type="${type}" enterkeyhint="send" ${type==='number'?'inputmode="numeric"':''} value="${esc(answers[key])}" placeholder="${esc(placeholder)}" maxlength="200">`}</label>`;}
 function choices(key,label,options,optional=false){return `<fieldset aria-label="${esc(label)}"><legend>${label} ${optional?'<small>선택</small>':''}</legend><div class="choices">${options.map(o=>`<button type="button" class="chip" data-key="${key}" data-value="${o}" aria-pressed="${answers[key]===o}">${o}</button>`).join('')}</div></fieldset>`;}
@@ -50,7 +64,8 @@ function summary(keys){return keys.map(([key,label])=>`<div class="summary"><b>$
 function error(message){$('error').textContent=message;}
 function render(){
  const oldScroll=$('screen').scrollTop;
- if(view==='form'&&step>=3&&!editing)sessions[persona]={history,step,questionIndex};
+ if(locked()&&view==='form')view='status';
+ if(view==='form'&&step>=3&&!editing&&sessions[persona]){Object.assign(sessions[persona],{history,step,questionIndex,answers,photos});persist();}
  document.body.dataset.persona=persona;
  document.body.dataset.screen=view==='form'?(step<2?'intro':step===2?'list':'chat'):view==='host'?'host':'result';
  $('brand').innerHTML=step>=3&&view==='form'?'<button id=chatBack class=icon-button aria-label=대화목록으로>‹</button><span class=header-avatar>'+name().slice(0,1)+'</span><span>'+name()+'<small>편하게 얘기해줘</small></span>':'친친소<span class=spark>✳</span>'; 
@@ -68,7 +83,7 @@ function render(){
  else {
  switch(step){
  case 1:html+=choices('성별','성별이 어떻게 돼요?',['여성','남성']);break;
- case 2:html+='<aside class="conversation-banner" aria-label="편하게 들려주세요"><div class="banner-copy"><strong>소개받고 싶은 사람,<br>편하게 얘기해봐요.</strong><p>취향도, 피하고 싶은 조건도요.</p></div><svg class="banner-art" viewBox="0 0 96 80" fill="none" aria-hidden="true"><path d="M5 29C5 14 17 6 33 6s28 8 28 23-12 23-28 23H21L9 61l2-20a23 23 0 0 1-6-12Z" fill="var(--incoming)"/><path d="M38 48c0-14 11-23 26-23s27 9 27 23-12 23-27 23H54l-11 7 1-16c-4-4-6-9-6-14Z" fill="var(--outgoing)"/><circle cx="24" cy="28" r="2" fill="var(--ink)"/><circle cx="40" cy="28" r="2" fill="var(--ink)"/><path d="M27 36q5 5 10 0" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><circle cx="54" cy="48" r="2" fill="var(--ink)"/><circle cx="64" cy="48" r="2" fill="var(--ink)"/><circle cx="74" cy="48" r="2" fill="var(--ink)"/></svg></aside><div class="contacts">'+Object.entries(HOSTS).map(([id,h])=>`<div class="contact-row"><button class="contact-avatar ${id}" data-host="${id}" aria-label="${h.name} 프로필 보기">${h.name.slice(0,1)}</button><button class="contact-content" data-persona="${id}" aria-label="${h.name}과 대화하기"><span class="contact-copy"><strong>${h.name}</strong><span class="contact-status" title="${h.job} · ${h.experience}">${h.job} · ${h.experience}</span></span><svg class="contact-chat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg></button></div>`).join('')+'</div>';break;
+ case 2:html+='<aside class="conversation-banner" aria-label="편하게 들려주세요"><div class="banner-copy"><strong>소개받고 싶은 사람,<br>편하게 얘기해봐요.</strong><p>취향도, 피하고 싶은 조건도요.</p></div><svg class="banner-art" viewBox="0 0 96 80" fill="none" aria-hidden="true"><path d="M5 29C5 14 17 6 33 6s28 8 28 23-12 23-28 23H21L9 61l2-20a23 23 0 0 1-6-12Z" fill="var(--incoming)"/><path d="M38 48c0-14 11-23 26-23s27 9 27 23-12 23-27 23H54l-11 7 1-16c-4-4-6-9-6-14Z" fill="var(--outgoing)"/><circle cx="24" cy="28" r="2" fill="var(--ink)"/><circle cx="40" cy="28" r="2" fill="var(--ink)"/><path d="M27 36q5 5 10 0" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><circle cx="54" cy="48" r="2" fill="var(--ink)"/><circle cx="64" cy="48" r="2" fill="var(--ink)"/><circle cx="74" cy="48" r="2" fill="var(--ink)"/></svg></aside><div class="contacts">'+Object.entries(HOSTS).map(([id,h])=>`<div class="contact-row"><button class="contact-avatar ${id}" data-host="${id}" aria-label="${h.name} 프로필 보기">${h.name.slice(0,1)}</button><button class="contact-content" data-persona="${id}" aria-label="${h.name}과 대화하기"><span class="contact-copy"><strong>${h.name}</strong><span class="contact-status" title="${esc(contactStatus(id,h))}">${esc(contactStatus(id,h))}</span></span><svg class="contact-chat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg></button></div>`).join('')+'</div>';break;
  case 3:html+=bubble(copy('오 반가워! 부담 갖지 말고 편하게 얘기해 ㅋㅋ\n\n당장 누구 소개하려는 건 아니야.\n\n어떤 사람인지, 어떤 사람이 좋은지만 알아둘게.\n\n잘 맞을 작은 자리가 생기면 먼저 초대할게 👀\n\n일단 쉬운 것부터!','오 반가워 👋 편하게 얘기해.\n\n당장 만나라는 건 아니고, 네 얘기 좀 들어두려고.\n\n취향이랑 피하고 싶은 조건까지 참고할게.\n\n맞는 자리가 생기면 먼저 초대할게.\n\n일단 기본적인 것부터 가보자.'));break;
  case 4:html+=questionUI();break;
  case 5:html+=questionUI();break;
@@ -166,14 +181,14 @@ function mountComposer(){
 function showIntroSlide(index){introSlide=Math.max(0,Math.min(2,index));const track=$('introSlides');if(track?.scrollTo)track.scrollTo({left:track.clientWidth*introSlide,behavior:'smooth'});updateIntroDots();}
 function updateIntroDots(){document.querySelectorAll('[data-slide]').forEach(el=>el.setAttribute('aria-current',String(Number(el.dataset.slide)===introSlide)));}
 function bind(){
- document.querySelectorAll('[data-start]').forEach(el=>el.onclick=()=>{answers.성별=el.dataset.start;if(returnToReview){returnToReview=false;step=9;}else step=2;questionIndex=0;render();topScreen();});
+ document.querySelectorAll('[data-start]').forEach(el=>el.onclick=()=>{base.성별=answers.성별=el.dataset.start;persist();if(returnToReview){returnToReview=false;step=9;}else step=2;questionIndex=0;render();topScreen();});
  document.querySelectorAll('[data-slide]').forEach(el=>el.onclick=()=>showIntroSlide(Number(el.dataset.slide)));
  const track=$('introSlides');if(track?.addEventListener){track.scrollLeft=track.clientWidth*introSlide;track.addEventListener('scroll',()=>{if(track.clientWidth){introSlide=Math.round(track.scrollLeft/track.clientWidth);updateIntroDots();}});track.onkeydown=e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();showIntroSlide(introSlide+(e.key==='ArrowRight'?1:-1));}};}
  if($('slidePrev'))$('slidePrev').onclick=()=>showIntroSlide(introSlide-1);
  if($('slideNext'))$('slideNext').onclick=()=>showIntroSlide(introSlide+1);
 
  if($('chatInfo'))$('chatInfo').onclick=()=>{const notice=$('chatNotice');if(notice){notice.remove();return;}const el=document.createElement('div');el.id='chatNotice';el.className='chat-notice';el.textContent='지금은 자동 질문으로 이야기를 모으는 중이고, 등록하면 '+name()+'이 직접 확인해요. 사진과 프로필은 공개 범위를 먼저 물어본 뒤에만 다른 참여자에게 보여줘요.';$('screen').prepend(el);$('screen').scrollTop=0;};
- if($('chatBack'))$('chatBack').onclick=()=>{if(busy)return;step=2;questionIndex=0;render();topScreen();};
+ if($('chatBack'))$('chatBack').onclick=()=>{if(busy||locked())return;returnToReview=false;step=2;questionIndex=0;render();topScreen();};
  document.querySelectorAll('input[data-key],textarea[data-key]').forEach(el=>{el.oninput=()=>{answers[el.dataset.key]=el.value;};el.onkeydown=e=>{if(sendsOnEnter(e)){e.preventDefault();next();}};});
  document.querySelectorAll('button[data-value]').forEach(el=>el.onclick=()=>{if(busy)return;const k=el.dataset.key;answers[k]=el.dataset.value;if(k==='_demoStatus'){status=el.dataset.value;render();return;}el.closest('fieldset').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===el));if($('choiceEntry')){$('choiceEntry').value=el.dataset.value;next();}});
  document.querySelectorAll('[data-persona]').forEach(el=>{if(el.tagName==='BUTTON')el.onclick=()=>startChat(el.dataset.persona);});
@@ -212,10 +227,11 @@ let submissionId=crypto.randomUUID();
 async function submit(){if(!demo&&(!PRIVACY.operator||!PRIVACY.retention||!PRIVACY.contact)){error('개인정보 처리방침을 준비하고 있어요. 정식 접수는 준비가 끝나면 열릴 예정이에요.');return;}busy=true;render();try{
  answers.연령대=Math.floor((new Date().getFullYear()-Number(answers.출생연도))/10)*10+'대';
  if(!demo){await request({_action:'capabilities'});const result=await request({...answers,신청ID:receipt?.id||submissionId,사진:photos,개인정보동의일시:new Date().toISOString(),_action:editing?'update':'submit',_token:receipt?.token});if(!result.id||!result.token)throw Error('접수번호를 확인하지 못했어. 다시 시도해줘.');receipt={id:result.id,token:result.token};try{sessionStorage.setItem('chinchinso-receipt',JSON.stringify(receipt));}catch{}}
- submitted=true;editing=false;status='pending';view='complete';
+ submitted=true;editing=false;status='pending';view='complete';forgetSessions();
  }catch(err){error(err.name==='AbortError'?'저장 확인이 지연되고 있어. 잠시 후 다시 눌러줘.':err.message);busy=false;$('next').disabled=false;$('next').textContent='다시 보내기';$('back').disabled=false;return;}busy=false;render();topScreen();}
 async function refreshStatus(){if(demo||busy)return;busy=true;$('status').disabled=true;try{const result=await request({_action:'status',신청ID:receipt.id,_token:receipt.token});if(!['pending','approved','rejected'].includes(result.status))throw Error('심사 상태를 확인하지 못했어.');status=result.status;if(result.answers){Object.assign(answers,result.answers);persona=answers.주선자||'f';}if(result.photos)photos=result.photos;render();}catch(err){error(err.message);}finally{busy=false;if($('status'))$('status').disabled=false;}}
 function fitKeyboard(){const screen=$('screen');const nearBottom=screen.scrollHeight-screen.scrollTop-screen.clientHeight<=screen.clientHeight/4;document.documentElement.style.setProperty('--viewport-height',(window.visualViewport?.height||window.innerHeight)+'px');if(view==='form'&&step>=3&&nearBottom)screen.scrollTop=screen.scrollHeight;}
 window.visualViewport?.addEventListener('resize',fitKeyboard);
 window.visualViewport?.addEventListener('scroll',fitKeyboard);
+if(!submitted)restoreSessions();
 render();if(window.visualViewport)fitKeyboard();if(receipt&&!demo)refreshStatus();
