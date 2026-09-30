@@ -26,10 +26,12 @@ const QUESTIONS={
 4:[['이름','이름이 뭐야?','홍길동'],['출생연도','몇 년생이야?','예: 1997','number'],['키','키는 몇이야?','예: 165','number'],['생활권','보통 어디서 지내? 집이나 회사처럼 평소 생활권 정도면 돼.','예: ○○동 살고 회사는 ○○'],['직업','무슨 일 해? 회사랑 하는 일 정도만 편하게.','예: IT 회사에서 기획 일 해'],['학교','학교는 어디 나왔어?','예: ○○대 / ○○학과'],['MBTI','MBTI도 알아?','예: ENFP','text',true]],
 5:[['취미','쉬는 날엔 보통 뭐 해? 요즘 자주 하는 거 아무거나!','예: 러닝, 카페 가기','textarea'],['음주','술은?', ['거의 안 마셔','가끔','자주 마셔']],['흡연','담배는?',['안 피워','가끔','피워']],['종교','종교는?',['없어','기독교','천주교','불교','기타'],'text',true]],
 10:[['연봉','연봉은?',['5천 미만','5–7천','7–9천','9천–1억','1억+','비밀'],'text',true],['자산','자산도 알려줄 수 있어?','대략적인 규모만 적어줘','text',true]],
-12:[['유입경로','우리 어떻게 알게 됐어?',['친구 추천','기존 참여자 추천','인스타','블라인드','기타']],['추천인','추천해준 사람 있어?','이름이나 닉네임','text',true],['연락처','연락받을 번호도 알려줘.','숫자만 입력 (- 없이)','tel']]
+12:[['유입경로','우리 어떻게 알게 됐어?',['친구 추천','기존 참여자 추천','인스타','블라인드','기타']],['추천인','추천해준 사람 있어?','이름이나 닉네임','text',true],['연락처','연락받을 번호도 알려줘.\n\n맞는 자리가 생기거나 확인할 게 있을 때만 연락할게.','숫자만 입력 (- 없이)','tel']]
 };
+// D-03: the chat opens with a plain date stamp; the automated-question role lives in the ⓘ notice and the host profile.
+function chatDate(){const d=new Date();return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일';}
 function currentQuestion(){return QUESTIONS[step]?.[questionIndex];}
-function questionUI(){const [key,label,placeholder,type='text',optional=false]=currentQuestion();const context=step===10&&questionIndex===0?bubble(copy('조금 현실적인 것도 물어볼게. 불편하면 넘어가도 돼. 상대에게 그대로 공개하지 않고, 조합을 생각할 때만 참고할게.','현실적인 조건도 참고하려고 해. 선택사항이니 말하기 싫으면 넘어가도 돼. 상대에게 그대로 공개하지 않아.')):'';return context+bubble(label)+(key==='연락처'?'<p class=hint>맞는 자리가 생기거나 추가 확인이 필요할 때만 연락할게.</p>':'')+(optional?'<p class="hint">말하기 불편하면 넘어가도 괜찮아.</p>':'')+(Array.isArray(placeholder)?choices(key,label,placeholder,optional):field(key,label,placeholder,type,optional));}
+function questionUI(){const [key,label,placeholder,type='text',optional=false]=currentQuestion();const context=step===10&&questionIndex===0?bubble(copy('조금 현실적인 것도 물어볼게. 불편하면 넘어가도 돼. 상대에게 그대로 공개하지 않고, 조합을 생각할 때만 참고할게.','현실적인 조건도 참고하려고 해. 선택사항이니 말하기 싫으면 넘어가도 돼. 상대에게 그대로 공개하지 않아.')):'';return context+bubble(label)+(Array.isArray(placeholder)?choices(key,label,placeholder,optional):field(key,label,placeholder,type,optional));}
 function remember(){const q=currentQuestion();const keys=q?[q[0]]:({6:['이상형'],7:['제외조건'],8:['중요조건'],9:['제외조건','중요조건','이상형']}[step]||[]);history.push({step,index:questionIndex,prompt:q?q[1]:lastPrompt||stages[step],keys,reply:step===3?'좋아, 얘기해볼게!':step===11?'사진 '+photos.length+'장 선택했어':step===9?'응, 이렇게 기억해줘.':''});}
 function transcript(){return history.map(h=>'<div class="past-turn">'+bubble(h.prompt)+'<div class="outgoing">'+esc(h.reply||h.keys.map(k=>answers[k]||'이건 넘어갈게').join(' · '))+'</div></div>').join('');}
 function previous(){if(busy)return;if(returnToReview){returnToReview=false;step=9;questionIndex=0;render();topScreen();return;}if(QUESTIONS[step]&&questionIndex>0)questionIndex--;else{step=step===2?0:Math.max(0,step-1);questionIndex=QUESTIONS[step]?QUESTIONS[step].length-1:0;}while(history.length&&(history.at(-1).step>step||(history.at(-1).step===step&&history.at(-1).index>=questionIndex)))history.pop();render();topScreen();}
@@ -53,7 +55,7 @@ function render(){
  $('progress').style.width=(view==='form'?step/13*100:100)+'%';
  let html=demo?'<div class="demo">체험 모드 · 서버에 전송되지 않아요</div>':'';
  if(view==='form'){
- html+=step===2?'':step<3?`<div class="eyebrow">${step===2?'02 / CHOOSE YOUR PERSON':'01 / A LITTLE HELLO'}</div>`:'<div class="chat-date">자동 질문으로 얘기를 모으고, 선택한 운영자가 직접 확인해요.</div>'+transcript()+'<div id=activeTurn class=active-turn>';
+ html+=step===2?'':step<3?`<div class="eyebrow">${step===2?'02 / CHOOSE YOUR PERSON':'01 / A LITTLE HELLO'}</div>`:'<div class="chat-date">'+chatDate()+'</div>'+transcript()+'<div id=activeTurn class=active-turn>';
  if(step<2){html=`<section class="onboarding" aria-label="친친소 서비스 소개"><div class="onboard-brand">친친소<span>친구의 친구, 우리 사이</span></div><div class="onboard-art" aria-hidden="true"><img src="assets/onboarding-tiger.png?v=2" alt="" width="3762" height="3762"></div><div id="introSlides" class="intro-slides" tabindex="0" aria-label="서비스 소개, 좌우로 넘겨보세요">`+[
  ['친구의 소개를,<br>더 넓고 잘 맞게.','친한 주선자에게 얘기하듯 알려주세요.<br>취향도, 피하고 싶은 조건도 편하게.'],
  ['내 이야기는 편하게,<br>내 정보는 조심스럽게.','등록만으로 사진이 공개되지 않아요.<br>누구에게 보여줄지 먼저 물어볼게요.'],
@@ -105,7 +107,7 @@ function render(){
 function mountComposer(){
  const chatting=view==='form'&&step>=3;
  if(!chatting)return;
- $('brand').innerHTML='<button id="chatBack" class="icon-button" aria-label="대화 목록으로">‹</button><div class="chat-person"><span class="header-avatar">'+name().slice(0,1)+'</span><strong>'+name()+'</strong><small>자동 질문 · 운영자가 나중에 확인</small></div>';
+ $('brand').innerHTML='<button id="chatBack" class="icon-button" aria-label="대화 목록으로">‹</button><div class="chat-person"><span class="header-avatar">'+name().slice(0,1)+'</span><strong>'+name()+'</strong><small>'+esc(HOSTS[persona].role)+'</small></div>';
  $('headerNote').innerHTML='<button id="chatInfo" class="info-button" aria-label="대화 안내">ⓘ</button>';
  const active=$('activeTurn');
  if(!active?.querySelectorAll)return;
@@ -159,7 +161,7 @@ function bind(){
  if($('slidePrev'))$('slidePrev').onclick=()=>showIntroSlide(introSlide-1);
  if($('slideNext'))$('slideNext').onclick=()=>showIntroSlide(introSlide+1);
 
- if($('chatInfo'))$('chatInfo').onclick=()=>{const notice=$('chatNotice');if(notice){notice.remove();return;}const el=document.createElement('div');el.id='chatNotice';el.className='chat-notice';el.textContent='지금은 자동 질문으로 이야기를 모으는 중이에요. 등록 후 선택한 운영자가 직접 확인해요. 사진과 프로필은 공개 범위를 먼저 확인한 뒤에만 다른 참여자에게 보여줘요.';$('screen').prepend(el);$('screen').scrollTop=0;};
+ if($('chatInfo'))$('chatInfo').onclick=()=>{const notice=$('chatNotice');if(notice){notice.remove();return;}const el=document.createElement('div');el.id='chatNotice';el.className='chat-notice';el.textContent='지금은 자동 질문으로 이야기를 모으는 중이고, 등록하면 '+name()+'이 직접 확인해요. 사진과 프로필은 공개 범위를 먼저 물어본 뒤에만 다른 참여자에게 보여줘요.';$('screen').prepend(el);$('screen').scrollTop=0;};
  if($('chatBack'))$('chatBack').onclick=()=>{if(busy)return;step=2;questionIndex=0;render();topScreen();};
  document.querySelectorAll('input[data-key],textarea[data-key]').forEach(el=>{el.oninput=()=>{answers[el.dataset.key]=el.value;};el.onkeydown=e=>{if(sendsOnEnter(e)){e.preventDefault();next();}};});
  document.querySelectorAll('button[data-value]').forEach(el=>el.onclick=()=>{if(busy)return;const k=el.dataset.key;answers[k]=el.dataset.value;if(k==='_demoStatus'){status=el.dataset.value;render();return;}el.closest('fieldset').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===el));if($('choiceEntry')){$('choiceEntry').value=el.dataset.value;next();}});
