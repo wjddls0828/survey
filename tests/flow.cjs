@@ -28,6 +28,8 @@ console.log('PASS: Enter sends, Shift+Enter and IME composition do not; textarea
 for(const [st,ix] of [[4,6],[10,1],[12,2]]){run(`view='form';step=${st};questionIndex=${ix};render()`);const html=elements.get('screen').innerHTML;assert(!html.includes('자동 질문으로 얘기를 모으고'),'chat still opens with the automation notice');assert(!html.includes('말하기 불편하면'),'optional hint still repeated');assert(html.includes('chat-date'));}
 assert(elements.get('screen').innerHTML.includes('확인할 게 있을 때만 연락할게'));assert(!elements.get('brand').innerHTML.includes('운영자가 나중에 확인'));assert(elements.get('brand').innerHTML.includes('촉 좋은 인싸 언니')||elements.get('brand').innerHTML.includes('발 넓은 마당발 형'));
 console.log('PASS: chat notices trimmed; contact purpose folded into the question bubble; header shows host role.');
+run("view='form';step=0;questionIndex=0;render()");{const html=elements.get('screen').innerHTML;assert.equal((html.match(/class="intro-slide"/g)||[]).length,3);for(const key of ['친구의 친구','주선자','피하고 싶은 조건','비공개','참석'])assert(html.includes(key),`intro slide missing ${key}`);}
+console.log('PASS: 3 intro slides name friend-of-friend matchmaking, dislikes, private signup and opt-in attendance.');
 ctx.fetch=async()=>({ok:true,json:async()=>({ok:true})});await assert.rejects(run("request({})"),/지원하지/);ctx.fetch=async()=>({ok:false});await assert.rejects(run('request({})'),/연결하지/);
 console.log('PASS: 28 step/persona renders; validation; summary preservation; independent gender/persona; demo submit; 3 review states; HTML escaping; legacy response and network failure handling.');
 new vm.Script(fs.readFileSync(require('path').join(__dirname,'../server/Code.gs'),'utf8'));console.log('PASS: Apps Script syntax');

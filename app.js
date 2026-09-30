@@ -57,9 +57,9 @@ function render(){
  if(view==='form'){
  html+=step===2?'':step<3?`<div class="eyebrow">${step===2?'02 / CHOOSE YOUR PERSON':'01 / A LITTLE HELLO'}</div>`:'<div class="chat-date">'+chatDate()+'</div>'+transcript()+'<div id=activeTurn class=active-turn>';
  if(step<2){html=`<section class="onboarding" aria-label="친친소 서비스 소개"><div class="onboard-brand">친친소<span>친구의 친구, 우리 사이</span></div><div class="onboard-art" aria-hidden="true"><img src="assets/onboarding-tiger.png?v=2" alt="" width="3762" height="3762"></div><div id="introSlides" class="intro-slides" tabindex="0" aria-label="서비스 소개, 좌우로 넘겨보세요">`+[
- ['친구의 소개를,<br>더 넓고 잘 맞게.','친한 주선자에게 얘기하듯 알려주세요.<br>취향도, 피하고 싶은 조건도 편하게.'],
- ['내 이야기는 편하게,<br>내 정보는 조심스럽게.','등록만으로 사진이 공개되지 않아요.<br>누구에게 보여줄지 먼저 물어볼게요.'],
- ['잘 맞을 작은 자리,<br>초대받고 결정해요.','운영자가 6~8명의 조합을 생각해요.<br>맞는 자리가 생기면 먼저 연락할게요.']
+ ['친구의 친구까지,<br>주선자가 이어줘요.','친한 주선자에게 얘기하듯 편하게.<br>내 인맥 너머의 사람을 소개받아요.'],
+ ['좋은 것만큼,<br>싫은 것도 챙겨요.','취향은 물론 피하고 싶은 조건까지<br>그대로 참고해서 자리를 만들어요.'],
+ ['등록은 비공개,<br>참석은 내가 정해요.','등록해도 프로필이 공개되지 않아요.<br>초대를 받은 뒤 갈지 말지 정하면 돼요.']
  ].map(([title,body],i)=>'<article class="intro-slide" aria-label="'+(i+1)+' / 3"><h1>'+title+'</h1><p>'+body+'</p></article>').join('')+'</div><div class="slide-controls"><button id="slidePrev" class="slide-arrow" aria-label="이전 소개">‹</button><div class="slide-dots">'+[0,1,2].map(i=>'<button class="slide-dot" data-slide="'+i+'" aria-label="소개 '+(i+1)+' 보기" aria-current="'+(i===introSlide)+'"><span></span></button>').join('')+'</div><button id="slideNext" class="slide-arrow" aria-label="다음 소개">›</button></div></section>';}
 
  else {
