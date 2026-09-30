@@ -4,7 +4,7 @@
  * Update the existing web-app deployment to retain its URL.
  */
 const LEGACY = ['연령대','유입경로','만족도','유용한점','추천의향','좋았던점','개선점','성별'];
-const FIELDS = LEGACY.concat(['주선자','이름','출생연도','키','생활권','직업','학교','MBTI','취미','음주','흡연','종교','이상형','제외조건','중요조건','연봉','자산','추천인','연락처','개인정보동의','개인정보동의일시']);
+const FIELDS = LEGACY.concat(['주선자','이름','출생연도','키','생활권','직업','같은회사제외','학교','MBTI','취미','음주','흡연','종교','이상형','제외조건','중요조건','연봉','자산','추천인','연락처','개인정보동의','개인정보동의일시']);
 function json_(data) {return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);}
 function hash_(text){return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,text));}
 function safe_(value){const text=String(value==null?'':value);return /^[=+\-@]/.test(text)?"'"+text:text;}

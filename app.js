@@ -23,7 +23,7 @@ const copy=(f,m)=>persona==='f'?f:m;
 const stages=['시작','먼저 하나만!','누구랑 얘기할래요?','반가워 👋','너부터 좀 알자','평소엔 뭐 하고 지내?','그래서 어떤 사람이 좋아?','반대로 이건 진짜 안 돼?','은근 중요한 건?','내가 제대로 이해했나 봐봐','조금 현실적인 것도','사진도 몇 장 줘 📸','어떻게 알고 왔어?','마지막으로 이것만'];
 
 const QUESTIONS={
-4:[['이름','이름이 뭐야?','홍길동'],['출생연도','몇 년생이야?','예: 1997','number'],['키','키는 몇이야?','예: 165','number'],['생활권','보통 어디서 지내? 집이나 회사처럼 평소 생활권 정도면 돼.','예: ○○동 살고 회사는 ○○'],['직업','무슨 일 해? 회사랑 하는 일 정도만 편하게.','예: IT 회사에서 기획 일 해'],['학교','학교는 어디 나왔어?','예: ○○대 / ○○학과'],['MBTI','MBTI도 알아?','예: ENFP','text',true]],
+4:[['이름','이름이 뭐야?','홍길동'],['출생연도','몇 년생이야?','예: 1997','number'],['키','키는 몇이야?','예: 165','number'],['생활권','보통 어디서 지내? 집이나 회사처럼 평소 생활권 정도면 돼.','예: ○○동 살고 회사는 ○○'],['직업','무슨 일 해? 회사랑 하는 일 정도만 편하게.','예: IT 회사에서 기획 일 해'],['같은회사제외','같은 회사 사람은 피하고 싶어?\n\n피하고 싶다면 자리 짤 때 겹치지 않게 확인할게.\n\n회사 이름을 적어줬을 때 더 정확히 확인할 수 있어.',['피하고 싶어','상관없어']],['학교','학교는 어디 나왔어?','예: ○○대 / ○○학과'],['MBTI','MBTI도 알아?','예: ENFP','text',true]],
 5:[['취미','쉬는 날엔 보통 뭐 해? 요즘 자주 하는 거 아무거나!','예: 러닝, 카페 가기','textarea'],['음주','술은?', ['거의 안 마셔','가끔','자주 마셔']],['흡연','담배는?',['안 피워','가끔','피워']],['종교','종교는?',['없어','기독교','천주교','불교','기타'],'text',true]],
 10:[['연봉','연봉은?',['5천 미만','5–7천','7–9천','9천–1억','1억+','비밀'],'text',true],['자산','자산도 알려줄 수 있어?','대략적인 규모만 적어줘','text',true]],
 12:[['유입경로','우리 어떻게 알게 됐어?',['친구 추천','기존 참여자 추천','인스타','블라인드','기타']],['추천인','추천해준 사람 있어?','이름이나 닉네임','text',true],['연락처','연락받을 번호도 알려줘.\n\n맞는 자리가 생기거나 확인할 게 있을 때만 연락할게.','숫자만 입력 (- 없이)','tel']]
@@ -41,7 +41,7 @@ function choices(key,label,options,optional=false){return `<fieldset aria-label=
 function bubble(text){lastPrompt=text;return `<div class="incoming"><span class="message-avatar" aria-hidden="true">${name().slice(0,1)}</span><div class="message-stack">${text.split(/\n\n/).map(part=>'<div class="bubble">'+esc(part)+'</div>').join('')}</div></div>`;}
 
 
-const REVIEW_FIELDS=[['이름','이름',4,0],['성별','성별',1,0],['출생연도','출생연도',4,1],['키','키',4,2],['생활권','생활권',4,3],['직업','하는 일',4,4],['학교','학교 · 전공',4,5],['MBTI','MBTI',4,6],['취미','쉬는 날 하는 일',5,0],['음주','술',5,1],['흡연','담배',5,2],['종교','종교',5,3],['이상형','만나고 싶은 사람',6,0],['제외조건','절대 안 되는 조건',7,0],['중요조건','은근 중요한 조건',8,0]];
+const REVIEW_FIELDS=[['이름','이름',4,0],['성별','성별',1,0],['출생연도','출생연도',4,1],['키','키',4,2],['생활권','생활권',4,3],['직업','하는 일',4,4],['같은회사제외','같은 회사 제외',4,5],['학교','학교 · 전공',4,6],['MBTI','MBTI',4,7],['취미','쉬는 날 하는 일',5,0],['음주','술',5,1],['흡연','담배',5,2],['종교','종교',5,3],['이상형','만나고 싶은 사람',6,0],['제외조건','절대 안 되는 조건',7,0],['중요조건','은근 중요한 조건',8,0]];
 function fullReview(){return '<div class="incoming review-message"><span class="message-avatar" aria-hidden="true">'+name().slice(0,1)+'</span><div class="message-stack">'+REVIEW_FIELDS.map(([key,label],i)=>'<div class="bubble review-bubble"><div class="review-label">'+esc(label)+'<button type="button" class="review-edit" data-review="'+i+'" aria-label="'+esc(label)+' 수정">수정</button></div><div class="review-answer">'+esc(answers[key]?String(answers[key])+(key==='키'?'cm':key==='출생연도'?'년생':''):'건너뛰었어')+'</div></div>').join('')+'</div></div>';}
 
 function summary(keys){return keys.map(([key,label])=>`<div class="summary"><b>${label}</b><p>${esc(answers[key]||'아직 알려주지 않았어요')}</p></div>`).join('');}
@@ -184,7 +184,7 @@ function bind(){
 // Enter sends in both input and textarea; Shift+Enter inserts a newline; IME composition never sends.
 function sendsOnEnter(e){return e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229;}
 function topScreen(){if(view==='form'&&step>=3){if(step===9)$('activeTurn')?.scrollIntoView({block:'start',behavior:'instant'});else $('screen').scrollTop=$('screen').scrollHeight;}else{$('screen').scrollTop=0;window.scrollTo({top:0,behavior:'instant'});}}
-function legacyValidate(){const required={1:['성별'],2:['주선자'],4:['이름','출생연도','키','생활권','직업','학교'],5:['취미','음주','흡연'],6:['이상형'],7:['제외조건'],8:['중요조건'],9:['이상형','제외조건','중요조건'],12:['유입경로','연락처']};if((required[step]||[]).some(k=>!String(answers[k]||'').trim()))return '아직 답하지 않은 항목을 채워줘.';
+function legacyValidate(){const required={1:['성별'],2:['주선자'],4:['이름','출생연도','키','생활권','직업','같은회사제외','학교'],5:['취미','음주','흡연'],6:['이상형'],7:['제외조건'],8:['중요조건'],9:['이상형','제외조건','중요조건'],12:['유입경로','연락처']};if((required[step]||[]).some(k=>!String(answers[k]||'').trim()))return '아직 답하지 않은 항목을 채워줘.';
  if(step===4){const year=Number(answers.출생연도),height=Number(answers.키);if(!Number.isInteger(year)||year<1900||year>new Date().getFullYear()-19)return '출생연도 4자리를 확인해줘. 출생연도 기준 19세 이상만 신청할 수 있어.';if(height<100||height>250)return '키는 cm 단위로 확인해줘 (100~250).';if(answers.MBTI&&!/^[IE][NS][FT][JP]$/i.test(answers.MBTI.trim()))return 'MBTI 네 글자를 확인하거나 비워줘.';}
  if(step===11&&(photos.length<3||photos.length>5))return '사진을 3~5장 선택해줘.';
  if(step===12&&!/^01[016789]\d{7,8}$/.test(answers.연락처.replace(/[-\s]/g,'')))return '연락받을 휴대폰 번호를 확인해줘.';
