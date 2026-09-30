@@ -30,6 +30,8 @@ assert(elements.get('screen').innerHTML.includes('확인할 게 있을 때만 �
 console.log('PASS: chat notices trimmed; contact purpose folded into the question bubble; header shows host role.');
 run("view='form';step=0;questionIndex=0;render()");{const html=elements.get('screen').innerHTML;assert.equal((html.match(/class="intro-slide"/g)||[]).length,3);for(const key of ['친구의 친구','주선자','피하고 싶은 조건','비공개','참석'])assert(html.includes(key),`intro slide missing ${key}`);}
 console.log('PASS: 3 intro slides name friend-of-friend matchmaking, dislikes, private signup and opt-in attendance.');
+for(const p of ['f','m']){run(`view='host';profilePersona='${p}';render()`);const html=elements.get('screen').innerHTML;for(const key of ['host-facts','<dt>소속</dt>','<dt>주선 경험</dt>','<dt>이런 사람</dt>','class="bubble"','직접 확인해요'])assert(html.includes(key),`host profile missing ${key}`);assert(!html.includes('undefined'));const nav=elements.get('nav').innerHTML;assert(nav.includes('id="hostList"')&&nav.includes(`data-persona="${p}"`)&&nav.includes('과 대화하기'));}
+console.log('PASS: host profile renders labelled facts, message preview, list-return and start-chat actions for both hosts.');
 ctx.fetch=async()=>({ok:true,json:async()=>({ok:true})});await assert.rejects(run("request({})"),/지원하지/);ctx.fetch=async()=>({ok:false});await assert.rejects(run('request({})'),/연결하지/);
 console.log('PASS: 28 step/persona renders; validation; summary preservation; independent gender/persona; demo submit; 3 review states; HTML escaping; legacy response and network failure handling.');
 new vm.Script(fs.readFileSync(require('path').join(__dirname,'../server/Code.gs'),'utf8'));console.log('PASS: Apps Script syntax');

@@ -12,7 +12,7 @@ let questionIndex=0;
 let returnToReview=false;
 let introSlide=0;
 let profilePersona='f';
-const HOSTS={f:{name:'다민',role:'촉 좋은 인싸 언니',job:'고려대 · IT기업',experience:'소개팅/미팅 주선 100회+',detail:'친구 연애상담 단골',quote:'일단 얘기해봐. 내가 감 좀 잡아볼게 👀'},m:{name:'정진',role:'발 넓은 마당발 형',job:'고려대 · 직장인',experience:'각종 모임 100회+',detail:'친구의 친구까지 넓은 인맥',quote:'어떤 사람 찾는데? 아는 사람 중에 생각해볼게.'}};
+const HOSTS={f:{name:'다민',role:'촉 좋은 인싸 언니',job:'고려대 · IT기업',experience:'소개팅·미팅 주선 100회+',detail:'친구들 연애 상담 단골',quote:'일단 얘기해봐. 내가 감 좀 잡아볼게 👀'},m:{name:'정진',role:'발 넓은 마당발 형',job:'고려대 · 직장인',experience:'각종 모임 100회+',detail:'친구의 친구까지 넓은 인맥',quote:'어떤 사람 찾는데? 아는 사람 중에 생각해볼게.'}};
 function startChat(id){persona=id;answers.주선자=id;view='form';step=3;questionIndex=0;history.length=0;render();topScreen();}
 const history=[];
 let lastPrompt="";
@@ -80,7 +80,8 @@ function render(){
  }}
  }else if(view==='host'){
  const h=HOSTS[profilePersona];
- html+='<section class="host-profile" aria-label="'+h.name+' 소개"><div class="host-avatar '+profilePersona+'" aria-hidden="true">'+h.name.slice(0,1)+'</div><h1>'+h.name+'</h1><p class="host-role">'+h.role+'</p><div class="host-quote">'+h.quote+'</div><div class="host-facts"><p>'+h.job+'</p><p>'+h.experience+'</p><p>'+h.detail+'</p></div><p class="host-note">자동 질문으로 편하게 이야기해주세요.<br>남겨준 이야기는 '+h.name+'이 직접 확인해요.</p></section>';
+ // C-09: identity → first message preview → labelled facts → role note; the row list keeps its own click contract.
+ html+='<section class="host-profile" aria-label="'+esc(h.name)+' 소개"><div class="host-avatar '+profilePersona+'" aria-hidden="true">'+esc(h.name.slice(0,1))+'</div><h1>'+esc(h.name)+'</h1><p class="host-role">'+esc(h.role)+'</p><div class="incoming host-quote"><span class="message-avatar" aria-hidden="true">'+esc(h.name.slice(0,1))+'</span><div class="message-stack"><div class="bubble">'+esc(h.quote)+'</div></div></div><dl class="host-facts">'+[['소속',h.job],['주선 경험',h.experience],['이런 사람',h.detail]].map(([k,v])=>'<div><dt>'+k+'</dt><dd>'+esc(v)+'</dd></div>').join('')+'</dl><p class="host-note">대화는 자동 질문으로 진행되고,<br>남긴 이야기는 '+esc(h.name)+'이 직접 확인해요.</p></section>';
  }else if(view==='profile'){
  html+='<h2>내가 얘기한 내용</h2>'+summary(Object.entries(answers).filter(([k,v])=>v&&!['주선자','개인정보동의'].includes(k)).map(([k])=>[k,k]));
  }else{
@@ -98,7 +99,7 @@ function render(){
  if(view==='form'&&step===2){$('brand').innerHTML='<button class="icon-button" id="back" aria-label="소개로 돌아가기">‹</button><span>대화 <small class="contact-count">2</small></span>';$('headerNote').textContent='';$('nav').innerHTML='';}
  if(view==='form'&&step>=3&&step<=12){$('next').textContent=step===3?'좋아, 시작하자 →':step===9?'응 딱 맞아 →':currentQuestion()?.[4]?'보내기 / 건너뛰기 ↑':'보내기 ↑';}
  if(view==='form'&&step<2)$('nav').innerHTML='<div class="start-panel"><p>이제, 얘기 시작할래요?</p><div class="start-genders"><button data-start="여성" class="start-gender female">여자</button><button data-start="남성" class="start-gender male">남자</button></div><small>성별을 선택하면 대화 상대를 고를 수 있어요.</small></div>';
- if(view==='host'){$('brand').innerHTML='<button id="hostBack" class="icon-button" aria-label="친구 목록으로">‹</button><span>프로필</span>';$('headerNote').textContent='';$('nav').innerHTML='<button class="primary" data-persona="'+profilePersona+'">'+HOSTS[profilePersona].name+'과 대화하기</button>';}
+ if(view==='host'){$('brand').innerHTML='<button id="hostBack" class="icon-button" aria-label="친구 목록으로">‹</button><span>프로필</span>';$('headerNote').textContent='';$('nav').innerHTML='<button class="secondary" id="hostList">목록으로</button><button class="primary" data-persona="'+profilePersona+'">'+esc(HOSTS[profilePersona].name)+'과 대화하기</button>';}
  mountComposer();
  bind();
  $('screen').scrollTop=oldScroll;
@@ -167,7 +168,7 @@ function bind(){
  document.querySelectorAll('button[data-value]').forEach(el=>el.onclick=()=>{if(busy)return;const k=el.dataset.key;answers[k]=el.dataset.value;if(k==='_demoStatus'){status=el.dataset.value;render();return;}el.closest('fieldset').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===el));if($('choiceEntry')){$('choiceEntry').value=el.dataset.value;next();}});
  document.querySelectorAll('[data-persona]').forEach(el=>{if(el.tagName==='BUTTON')el.onclick=()=>startChat(el.dataset.persona);});
  document.querySelectorAll('[data-host]').forEach(el=>el.onclick=()=>{profilePersona=el.dataset.host;view='host';render();topScreen();});
- if($('hostBack'))$('hostBack').onclick=()=>{view='form';step=2;render();topScreen();};
+ for(const id of ['hostBack','hostList'])if($(id))$(id).onclick=()=>{view='form';step=2;render();topScreen();};
  document.querySelectorAll('[data-remove]').forEach(el=>el.onclick=()=>{photos.splice(Number(el.dataset.remove),1);render();});
  if($('next')){const entry=$('composer')?.querySelector?.('.chat-entry');$('next').disabled=busy||!!(entry&&!entry.value.trim());$('next').onclick=next;}
  if($('back')){$('back').disabled=busy;$('back').onclick=previous;}
