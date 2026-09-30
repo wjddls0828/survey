@@ -41,6 +41,15 @@ assert.equal(run("checkPhoto({name:'a.jpg',type:'image/jpeg',size:1000})"),'');a
 run("view='form';step=11;questionIndex=0;returnToReview=false;photos=[{},{}]");assert(run('validate()').includes('1장 더'));run('photos=[{},{},{},{},{},{}]');assert(run('validate()').includes('지워줘'));run('photos=[{},{},{}]');assert.equal(run('validate()'),'');
 {const gs=fs.readFileSync(require('path').join(__dirname,'../server/Code.gs'),'utf8');assert(gs.includes("error.expose?error.message")&&gs.includes("reject_('사진은 3~5장 필요합니다.')")&&gs.includes('5*1024*1024')&&gs.includes('jpeg|png|webp'));}
 console.log('PASS: photo checks name the file and reason (type, HEIC, size), count messages say how many more, server exposes its own validation messages.');
+// #14: per-host sessions
+run("submitted=false;editing=false;busy=false;returnToReview=false;for(const k in sessions)delete sessions[k];view='form';step=2;questionIndex=0;render()");
+run("startChat('f')");assert.equal(run('step'),3);assert.equal(run('history.length'),0);await run('next()');run("answers.이름='홍길동'");await run('next()');assert.deepEqual(run('[step,questionIndex,history.length]'),[4,1,2]);
+run("startChat('m')");assert.deepEqual(run('[step,questionIndex,history.length,answers.주선자]'),[3,0,0,'m']);await run('next()');assert.equal(run('step'),4);
+run("startChat('f')");assert.deepEqual(run('[step,questionIndex,history.length,answers.주선자]'),[4,1,2,'f']);
+run("startChat('m')");assert.deepEqual(run('[step,questionIndex,history.length]'),[4,0,1]);
+run("step=2;questionIndex=0;render();startChat('f')");assert.deepEqual(run('[step,questionIndex,history.length]'),[4,1,2]);
+run("editing=true;startChat('f')");assert.deepEqual(run('[step,history.length]'),[3,0]);run('editing=false');
+console.log('PASS: each host keeps its own bubbles and position across switches; edit flow still restarts.');
 ctx.fetch=async()=>({ok:true,json:async()=>({ok:true})});await assert.rejects(run("request({})"),/지원하지/);ctx.fetch=async()=>({ok:false});await assert.rejects(run('request({})'),/연결하지/);
 console.log('PASS: 28 step/persona renders; validation; summary preservation; independent gender/persona; demo submit; 3 review states; HTML escaping; legacy response and network failure handling.');
 new vm.Script(fs.readFileSync(require('path').join(__dirname,'../server/Code.gs'),'utf8'));console.log('PASS: Apps Script syntax');

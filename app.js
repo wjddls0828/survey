@@ -13,8 +13,10 @@ let returnToReview=false;
 let introSlide=0;
 let profilePersona='f';
 const HOSTS={f:{name:'다민',role:'촉 좋은 인싸 언니',job:'고려대 · IT기업',experience:'소개팅·미팅 주선 100회+',detail:'친구들 연애 상담 단골',quote:'일단 얘기해봐. 내가 감 좀 잡아볼게 👀'},m:{name:'정진',role:'발 넓은 마당발 형',job:'고려대 · 직장인',experience:'각종 모임 100회+',detail:'친구의 친구까지 넓은 인맥',quote:'어떤 사람 찾는데? 아는 사람 중에 생각해볼게.'}};
-function startChat(id){persona=id;answers.주선자=id;view='form';step=3;questionIndex=0;history.length=0;render();topScreen();}
-const history=[];
+// #14: one conversation state per host. Re-selecting a host resumes that chat (bubbles + position); the post-submit edit flow still restarts.
+const sessions={};
+let history=[];
+function startChat(id){if(busy)return;persona=id;answers.주선자=id;const saved=!editing&&sessions[id];if(saved){history=saved.history;step=saved.step;questionIndex=saved.questionIndex;}else{history=[];step=3;questionIndex=0;}view='form';render();topScreen();}
 let lastPrompt="";
 let receipt=null;
 try{receipt=JSON.parse(sessionStorage.getItem('chinchinso-receipt'));if(receipt&&!demo){submitted=true;view='status';}}catch{}
@@ -48,6 +50,7 @@ function summary(keys){return keys.map(([key,label])=>`<div class="summary"><b>$
 function error(message){$('error').textContent=message;}
 function render(){
  const oldScroll=$('screen').scrollTop;
+ if(view==='form'&&step>=3&&!editing)sessions[persona]={history,step,questionIndex};
  document.body.dataset.persona=persona;
  document.body.dataset.screen=view==='form'?(step<2?'intro':step===2?'list':'chat'):view==='host'?'host':'result';
  $('brand').innerHTML=step>=3&&view==='form'?'<button id=chatBack class=icon-button aria-label=대화목록으로>‹</button><span class=header-avatar>'+name().slice(0,1)+'</span><span>'+name()+'<small>편하게 얘기해줘</small></span>':'친친소<span class=spark>✳</span>'; 
