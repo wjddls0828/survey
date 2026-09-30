@@ -7,6 +7,8 @@ const LEGACY = ['연령대','유입경로','만족도','유용한점','추천의
 const FIELDS = LEGACY.concat(['주선자','이름','출생연도','키','생활권','직업','같은회사제외','학교','MBTI','취미','음주','흡연','종교','이상형','제외조건','중요조건','연봉','자산','추천인','연락처','개인정보동의','개인정보동의일시']);
 function json_(data) {return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);}
 function hash_(text){return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,text));}
+// Validation messages the applicant can act on are returned as-is; everything else stays generic.
+function reject_(message){const error=Error(message);error.expose=true;return error;}
 function safe_(value){const text=String(value==null?'':value);return /^[=+\-@]/.test(text)?"'"+text:text;}
 function doPost(e){
  const lock=LockService.getScriptLock();
@@ -44,17 +46,17 @@ function doPost(e){
   if(!['submit','update'].includes(data._action))throw Error('지원하지 않는 요청입니다.');
   if(row&&data._action==='submit')return json_({ok:true,schemaVersion:2,id,token});
   const mandatory=['성별','주선자','이름','출생연도','키','생활권','직업','학교','취미','음주','흡연','이상형','제외조건','중요조건','유입경로','연락처'];
-  if(mandatory.some(k=>!String(data[k]||'').trim())||data.개인정보동의!==true)throw Error('필수 입력 및 개인정보 동의를 확인해주세요.');
-  if(!['여성','남성'].includes(data.성별)||!['f','m'].includes(data.주선자))throw Error('선택값을 확인해주세요.');
-  if(!/^01[016789]\d{7,8}$/.test(String(data.연락처).replace(/[-\s]/g,'')))throw Error('연락처를 확인해주세요.');
-  if(!Number.isInteger(Number(data.출생연도))||Number(data.출생연도)<1900||Number(data.출생연도)>new Date().getFullYear()-19||Number(data.키)<100||Number(data.키)>250)throw Error('출생연도와 키를 확인해주세요.');
-  FIELDS.forEach(k=>{if(String(data[k]||'').length>2000)throw Error('입력 가능한 길이를 초과했습니다.');});
-  if(!Array.isArray(data.사진)||data.사진.length<3||data.사진.length>5)throw Error('사진은 3~5장 필요합니다.');
+  if(mandatory.some(k=>!String(data[k]||'').trim())||data.개인정보동의!==true)throw reject_('필수 입력 및 개인정보 동의를 확인해주세요.');
+  if(!['여성','남성'].includes(data.성별)||!['f','m'].includes(data.주선자))throw reject_('선택값을 확인해주세요.');
+  if(!/^01[016789]\d{7,8}$/.test(String(data.연락처).replace(/[-\s]/g,'')))throw reject_('연락처를 확인해주세요.');
+  if(!Number.isInteger(Number(data.출생연도))||Number(data.출생연도)<1900||Number(data.출생연도)>new Date().getFullYear()-19||Number(data.키)<100||Number(data.키)>250)throw reject_('출생연도와 키를 확인해주세요.');
+  FIELDS.forEach(k=>{if(String(data[k]||'').length>2000)throw reject_('입력 가능한 길이를 초과했습니다.');});
+  if(!Array.isArray(data.사진)||data.사진.length<3||data.사진.length>5)throw reject_('사진은 3~5장 필요합니다.');
   const blobs=data.사진.map((photo,i)=>{
    const match=String(photo.data||'').match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
-   if(!match||match[2].length>7*1024*1024)throw Error('사진 형식 또는 크기를 확인해주세요.');
+   if(!match||match[2].length>7*1024*1024)throw reject_('사진 형식(JPG, PNG, WebP) 또는 크기를 확인해주세요.');
    const bytes=Utilities.base64Decode(match[2]);
-   if(bytes.length>5*1024*1024)throw Error('사진은 5MB 이하만 가능합니다.');
+   if(bytes.length>5*1024*1024)throw reject_('사진은 한 장당 5MB 이하만 가능합니다.');
    return Utilities.newBlob(bytes,match[1],id+'-'+(i+1));
   });
   let folderId=props.getProperty('PHOTO_FOLDER_ID');
@@ -73,6 +75,6 @@ function doPost(e){
   // Clean up replaced images only after the new record is saved successfully.
   if(row)JSON.parse(read('사진')||'[]').forEach(p=>{try{DriveApp.getFileById(p.id).setTrashed(true);}catch{}});
   return json_({ok:true,schemaVersion:2,id,token});
- }catch(error){console.error(error);return json_({ok:false,schemaVersion:2,error:'저장 또는 조회를 완료하지 못했습니다. 입력값을 확인하거나 운영자에게 문의해주세요.'});}
+ }catch(error){console.error(error);return json_({ok:false,schemaVersion:2,error:error.expose?error.message:'저장 또는 조회를 완료하지 못했습니다. 입력값을 확인하거나 운영자에게 문의해주세요.'});}
  finally{if(lock.hasLock())lock.releaseLock();}
 }
