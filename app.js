@@ -23,10 +23,10 @@ const copy=(f,m)=>persona==='f'?f:m;
 const stages=['시작','먼저 하나만!','누구랑 얘기할래요?','반가워 👋','너부터 좀 알자','평소엔 뭐 하고 지내?','그래서 어떤 사람이 좋아?','반대로 이건 진짜 안 돼?','은근 중요한 건?','내가 제대로 이해했나 봐봐','조금 현실적인 것도','사진도 몇 장 줘 📸','어떻게 알고 왔어?','마지막으로 이것만'];
 
 const QUESTIONS={
-4:[['이름','이름이 뭐야?','함다인'],['출생연도','몇 년생이야?','1997','number'],['키','키는 몇이야?','163','number'],['생활권','보통 어디서 지내? 집이나 회사처럼 평소 생활권 정도면 돼.','잠실 살고 회사는 판교야'],['직업','무슨 일 해? 회사랑 하는 일 정도만 편하게.','네이버에서 서비스 기획해'],['학교','학교는 어디 나왔어?','고려대 / 경영학과'],['MBTI','MBTI도 알아?','ENFP','text',true]],
-5:[['취미','쉬는 날엔 보통 뭐 해? 요즘 자주 하는 거 아무거나!','요가 하고 맛있는 거 먹으러 다녀.','textarea'],['음주','술은?', ['거의 안 마셔','가끔','자주 마셔']],['흡연','담배는?',['안 피워','가끔','피워']],['종교','종교는?',['없어','기독교','천주교','불교','기타'],'text',true]],
-10:[['연봉','연봉은?',['5천 미만','5–7천','7–9천','9천–1억','1억+','비밀'],'text',true],['자산','자산도 알려줄 수 있어?','불편하면 비워둬도 돼','text',true]],
-12:[['유입경로','우리 어떻게 알게 됐어?',['친구 추천','기존 참여자 추천','인스타','블라인드','기타']],['추천인','추천해준 사람 있어?','이름이나 닉네임','text',true],['연락처','연락받을 번호도 알려줘.','01012345678','tel']]
+4:[['이름','이름이 뭐야?','홍길동'],['출생연도','몇 년생이야?','예: 1997','number'],['키','키는 몇이야?','예: 165','number'],['생활권','보통 어디서 지내? 집이나 회사처럼 평소 생활권 정도면 돼.','예: ○○동 살고 회사는 ○○'],['직업','무슨 일 해? 회사랑 하는 일 정도만 편하게.','예: IT 회사에서 기획 일 해'],['학교','학교는 어디 나왔어?','예: ○○대 / ○○학과'],['MBTI','MBTI도 알아?','예: ENFP','text',true]],
+5:[['취미','쉬는 날엔 보통 뭐 해? 요즘 자주 하는 거 아무거나!','예: 러닝, 카페 가기','textarea'],['음주','술은?', ['거의 안 마셔','가끔','자주 마셔']],['흡연','담배는?',['안 피워','가끔','피워']],['종교','종교는?',['없어','기독교','천주교','불교','기타'],'text',true]],
+10:[['연봉','연봉은?',['5천 미만','5–7천','7–9천','9천–1억','1억+','비밀'],'text',true],['자산','자산도 알려줄 수 있어?','대략적인 규모만 적어줘','text',true]],
+12:[['유입경로','우리 어떻게 알게 됐어?',['친구 추천','기존 참여자 추천','인스타','블라인드','기타']],['추천인','추천해준 사람 있어?','이름이나 닉네임','text',true],['연락처','연락받을 번호도 알려줘.','숫자만 입력 (- 없이)','tel']]
 };
 function currentQuestion(){return QUESTIONS[step]?.[questionIndex];}
 function questionUI(){const [key,label,placeholder,type='text',optional=false]=currentQuestion();const context=step===10&&questionIndex===0?bubble(copy('조금 현실적인 것도 물어볼게. 불편하면 넘어가도 돼. 상대에게 그대로 공개하지 않고, 조합을 생각할 때만 참고할게.','현실적인 조건도 참고하려고 해. 선택사항이니 말하기 싫으면 넘어가도 돼. 상대에게 그대로 공개하지 않아.')):'';return context+bubble(label)+(key==='연락처'?'<p class=hint>맞는 자리가 생기거나 추가 확인이 필요할 때만 연락할게.</p>':'')+(optional?'<p class="hint">말하기 불편하면 넘어가도 괜찮아.</p>':'')+(Array.isArray(placeholder)?choices(key,label,placeholder,optional):field(key,label,placeholder,type,optional));}
@@ -34,7 +34,7 @@ function remember(){const q=currentQuestion();const keys=q?[q[0]]:({6:['이상�
 function transcript(){return history.map(h=>'<div class="past-turn">'+bubble(h.prompt)+'<div class="outgoing">'+esc(h.reply||h.keys.map(k=>answers[k]||'이건 넘어갈게').join(' · '))+'</div></div>').join('');}
 function previous(){if(busy)return;if(returnToReview){returnToReview=false;step=9;questionIndex=0;render();topScreen();return;}if(QUESTIONS[step]&&questionIndex>0)questionIndex--;else{step=step===2?0:Math.max(0,step-1);questionIndex=QUESTIONS[step]?QUESTIONS[step].length-1:0;}while(history.length&&(history.at(-1).step>step||(history.at(-1).step===step&&history.at(-1).index>=questionIndex)))history.pop();render();topScreen();}
 
-function field(key,label,placeholder='',type='text',optional=false){return `<label class="field"><span>${label} ${optional?'<small>선택</small>':''}</span>${type==='textarea'?`<textarea aria-label="${esc(label)}" data-key="${key}" placeholder="${placeholder}" maxlength="2000">${esc(answers[key])}</textarea>`:`<input aria-label="${esc(label)}" data-key="${key}" type="${type}" ${type==='number'?'inputmode="numeric"':''} value="${esc(answers[key])}" placeholder="${placeholder}" maxlength="200">`}</label>`;}
+function field(key,label,placeholder='',type='text',optional=false){return `<label class="field"><span>${label} ${optional?'<small>선택</small>':''}</span>${type==='textarea'?`<textarea aria-label="${esc(label)}" data-key="${key}" placeholder="${esc(placeholder)}" maxlength="2000">${esc(answers[key])}</textarea>`:`<input aria-label="${esc(label)}" data-key="${key}" type="${type}" ${type==='number'?'inputmode="numeric"':''} value="${esc(answers[key])}" placeholder="${esc(placeholder)}" maxlength="200">`}</label>`;}
 function choices(key,label,options,optional=false){return `<fieldset aria-label="${esc(label)}"><legend>${label} ${optional?'<small>선택</small>':''}</legend><div class="choices">${options.map(o=>`<button type="button" class="chip" data-key="${key}" data-value="${o}" aria-pressed="${answers[key]===o}">${o}</button>`).join('')}</div></fieldset>`;}
 function bubble(text){lastPrompt=text;return `<div class="incoming"><span class="message-avatar" aria-hidden="true">${name().slice(0,1)}</span><div class="message-stack">${text.split(/\n\n/).map(part=>'<div class="bubble">'+esc(part)+'</div>').join('')}</div></div>`;}
 
@@ -67,9 +67,9 @@ function render(){
  case 3:html+=bubble(copy('오 반가워!\n당장 누구 소개해주겠다는 건 아니니까 부담 갖지 말고ㅋㅋ\n\n너 어떤 사람인지랑 어떤 사람 좋아하는지만 좀 알아둘게.\n잘 맞을 작은 자리가 생기면 먼저 초대할게 👀\n\n일단 쉬운 것부터!','오 반가워 👋\n당장 누구 만나라는 건 아니고 네 얘기 좀 들어두려고.\n\n네 취향이랑 피하고 싶은 조건까지 참고해서 작은 자리를 생각해볼게. 맞는 자리가 생기면 먼저 초대할게.\n\n일단 기본적인 것부터 가보자.'));break;
  case 4:html+=questionUI();break;
  case 5:html+=questionUI();break;
- case 6:html+=bubble(copy('자 이제 진짜 궁금한 거ㅋㅋ\n너는 어떤 사람 만나고 싶어?\n친구한테 얘기한다고 생각하고 편하게 말해줘. 조건이어도 좋고, 느낌이어도 좋아.','자 이제 중요한 거.\n그래서 어떤 사람 만나고 싶은데?\n조건, 성격, 느낌 다 좋아. 생각나는 대로 얘기해봐.'))+field('이상형','어떤 사람이 좋아?','키가 좀 컸으면 좋겠고 자기 일 열심히 하는 사람이 좋아.','textarea');break;
- case 7:html+=bubble(copy('근데 사실 이것도 엄청 중요해.\n“아무리 괜찮아도 이런 사람은 진짜 안 돼.”\n뭐 있어? 이유까지 설명 안 해도 돼. 솔직할수록 좋음ㅋㅋ','좋아하는 것만큼 아예 안 되는 걸 미리 아는 것도 중요하거든.\n이런 사람이면 안 만난다 하는 거 있어?'))+field('제외조건','이건 진짜 안 돼','흡연자는 안 되고, 연하는 싫어. 없다면 없다고 말해줘.','textarea');break;
- case 8:html+=bubble(copy('이상형까진 아닌데 막상 연애하면 은근 중요한 거 있잖아.\n연락, 돈 쓰는 방식, 표현, 주말 보내는 방식 같은 거. 너는 뭐 있어?','필수 조건까진 아닌데 안 맞으면 연애하기 힘들 것 같은 건?'))+field('중요조건','은근 중요한 건?','연락이 너무 뜸한 건 싫어. 돈 쓰는 방식도 비슷했으면 좋겠어.','textarea');break;
+ case 6:html+=bubble(copy('자 이제 진짜 궁금한 거ㅋㅋ\n너는 어떤 사람 만나고 싶어?\n친구한테 얘기한다고 생각하고 편하게 말해줘. 조건이어도 좋고, 느낌이어도 좋아.','자 이제 중요한 거.\n그래서 어떤 사람 만나고 싶은데?\n조건, 성격, 느낌 다 좋아. 생각나는 대로 얘기해봐.'))+field('이상형','어떤 사람이 좋아?','예: 대화가 잘 통하는 사람','textarea');break;
+ case 7:html+=bubble(copy('근데 사실 이것도 엄청 중요해.\n“아무리 괜찮아도 이런 사람은 진짜 안 돼.”\n뭐 있어? 이유까지 설명 안 해도 돼. 솔직할수록 좋음ㅋㅋ','좋아하는 것만큼 아예 안 되는 걸 미리 아는 것도 중요하거든.\n이런 사람이면 안 만난다 하는 거 있어?'))+field('제외조건','이건 진짜 안 돼','예: 흡연자, 연락 안 되는 사람','textarea');break;
+ case 8:html+=bubble(copy('이상형까진 아닌데 막상 연애하면 은근 중요한 거 있잖아.\n연락, 돈 쓰는 방식, 표현, 주말 보내는 방식 같은 거. 너는 뭐 있어?','필수 조건까진 아닌데 안 맞으면 연애하기 힘들 것 같은 건?'))+field('중요조건','은근 중요한 건?','예: 연락 빈도, 돈 쓰는 방식','textarea');break;
  case 9:html+=bubble(copy('잠깐ㅋㅋ 이름부터 지금까지 얘기한 거 쭉 모아봤어 👀\n틀린 게 있으면 고쳐줘!','이름부터 지금까지 얘기해준 내용이야.\n한번 쭉 보고, 다른 부분 있으면 고쳐줘.'))+fullReview();break;
  case 10:html+=questionUI();break;
  case 11:html+=bubble(copy('아 맞다 사진ㅋㅋ\n한 장 고르느라 고민하지 말고 3~5장 그냥 보내줘.\n얼굴 잘 보이는 거 하나랑 평소 느낌 보이는 사진이면 충분해!','사진도 최근 걸로 3~5장 정도 줘.\n한 장 엄선할 필요 없고 얼굴 잘 보이는 사진 하나 정도만 있으면 돼.'))+'<div class="privacy"><strong>🔒 사진은 일단 우리만 볼게.</strong>등록한 사진은 동의 없이 다른 사람에게 공개되지 않아요.<br>잘 맞을 것 같은 사람이 생겨도 먼저 너한테 물어보고, 네가 괜찮다고 했을 때만 보여줄게.</div><label class="field"><span>사진 올리기 · 3~5장</span><input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" multiple></label><small>JPG · PNG · WebP, 한 장당 5MB 이하</small><div class="photos">'+photos.map((p,i)=>`<div class="photo"><img src="${p.data}" alt="선택한 사진 ${i+1}"><button data-remove="${i}" aria-label="사진 ${i+1} 삭제">×</button></div>`).join('')+'</div>';break;
@@ -120,8 +120,8 @@ function mountComposer(){
  if(plain){
   const entry=fields[0].querySelector('input,textarea');
   entry.classList.add('chat-entry');
-  if(entry.tagName==='TEXTAREA'){entry.rows=1;entry.placeholder='메시지를 입력하세요';}
-  else entry.placeholder=currentQuestion()?.[2]||'메시지를 입력하세요';
+  if(entry.tagName==='TEXTAREA')entry.rows=1;
+  if(!entry.placeholder)entry.placeholder='메시지를 입력하세요';
   $('composer').appendChild(entry);fields[0].remove();
   nextButton.textContent='➤';nextButton.className='send-message';nextButton.setAttribute('aria-label','메시지 보내기');
  }else if(options){

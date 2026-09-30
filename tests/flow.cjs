@@ -19,6 +19,9 @@ for(const [st,ix,key,optional] of [[5,1,'음주',false],[5,2,'흡연',false],[5,
  if(optional){await run('next(true)');assert(run('step')!==st||run('questionIndex')!==ix);}
 }
 console.log('PASS: all five empty choice questions blocked; explicit optional skip allowed.');
+for(const [st,ix] of [[4,0],[4,3],[4,4],[4,5],[5,0],[6,0],[7,0],[8,0],[12,2]]){run(`view='form';step=${st};questionIndex=${ix};render()`);const placeholders=[...elements.get('screen').innerHTML.matchAll(/placeholder="([^"]*)"/g)].map(m=>m[1]).join(' ');assert(placeholders,`no placeholder at step ${st}/${ix}`);for(const pii of ['함다인','네이버','경영학과','잠실','판교','01012345678'])assert(!placeholders.includes(pii),`placeholder leaks ${pii} at step ${st}/${ix}`);}
+run("view='form';step=4;questionIndex=0;render()");assert(elements.get('screen').innerHTML.includes('placeholder="홍길동"'));
+console.log('PASS: placeholders contain no person-like data; generic example name in use.');
 ctx.fetch=async()=>({ok:true,json:async()=>({ok:true})});await assert.rejects(run("request({})"),/지원하지/);ctx.fetch=async()=>({ok:false});await assert.rejects(run('request({})'),/연결하지/);
 console.log('PASS: 28 step/persona renders; validation; summary preservation; independent gender/persona; demo submit; 3 review states; HTML escaping; legacy response and network failure handling.');
 new vm.Script(fs.readFileSync(require('path').join(__dirname,'../server/Code.gs'),'utf8'));console.log('PASS: Apps Script syntax');
